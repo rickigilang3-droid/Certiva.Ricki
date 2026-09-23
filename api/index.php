@@ -88,6 +88,11 @@ if (! getenv('LOG_CHANNEL') && ! isset($_ENV['LOG_CHANNEL'])) {
     $_ENV['LOG_CHANNEL'] = 'stderr';
 }
 
+if (! getenv('APP_MAINTENANCE_DRIVER') || getenv('APP_MAINTENANCE_DRIVER') === '') {
+    putenv('APP_MAINTENANCE_DRIVER=file');
+    $_ENV['APP_MAINTENANCE_DRIVER'] = 'file';
+}
+
 try {
     require __DIR__.'/../public/index.php';
 } catch (Throwable $e) {
