@@ -47,3 +47,4 @@ class VerificationLogController extends Controller
         ]);
     }
 }
+

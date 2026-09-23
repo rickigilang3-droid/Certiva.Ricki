@@ -113,11 +113,11 @@ class CertificateBulkImportService
             // Certificate number
             $certNumber = trim($data['certificate_number'] ?? $data['nomor_sertifikat'] ?? '');
             if (empty($certNumber)) {
-                $lastSeq++;
-                $certNumber = 'CERT-'.date('Y').'-CAMPUS-'.str_pad((string) $lastSeq, 5, '0', STR_PAD_LEFT);
-            }
-
-            if (Certificate::where('certificate_number', $certNumber)->exists()) {
+                do {
+                    $lastSeq++;
+                    $certNumber = 'CERT-'.date('Y').'-CAMPUS-'.str_pad((string) $lastSeq, 5, '0', STR_PAD_LEFT);
+                } while (Certificate::where('certificate_number', $certNumber)->exists());
+            } elseif (Certificate::where('certificate_number', $certNumber)->exists()) {
                 $errors[] = "Baris {$rowNumber}: Nomor sertifikat '{$certNumber}' sudah terdaftar dalam sistem.";
 
                 continue;

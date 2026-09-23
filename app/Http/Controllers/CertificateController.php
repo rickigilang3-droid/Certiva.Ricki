@@ -70,7 +70,11 @@ class CertificateController
     public function create()
     {
         $activeKey = $this->cryptoService->getActiveKey();
-        $suggestedNumber = 'CERT-'.date('Y').'-CAMPUS-'.str_pad((string) (Certificate::count() + 101), 5, '0', STR_PAD_LEFT);
+        $seq = Certificate::count() + 101;
+        do {
+            $suggestedNumber = 'CERT-'.date('Y').'-CAMPUS-'.str_pad((string) $seq, 5, '0', STR_PAD_LEFT);
+            $seq++;
+        } while (Certificate::where('certificate_number', $suggestedNumber)->exists());
         $students = User::where('role', User::ROLE_MAHASISWA)
             ->orderBy('name')
             ->get(['id', 'name', 'email', 'identifier']);

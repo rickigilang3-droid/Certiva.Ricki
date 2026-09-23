@@ -80,10 +80,15 @@ $_ENV['VIEW_COMPILED_PATH'] = '/tmp/storage/framework/views';
 // Copy bundled SQLite database to /tmp if not already present or if bundle changed
 $tmpDb = '/tmp/database.sqlite';
 $bundledDb = __DIR__.'/../database/database.sqlite';
+$hashFile = '/tmp/database.sqlite.hash';
 
 if (file_exists($bundledDb) && filesize($bundledDb) > 0) {
-    if (! file_exists($tmpDb) || filemtime($bundledDb) > filemtime($tmpDb) || filesize($tmpDb) !== filesize($bundledDb)) {
+    $bundleHash = md5_file($bundledDb);
+    $currentHash = file_exists($hashFile) ? trim(file_get_contents($hashFile)) : '';
+
+    if (! file_exists($tmpDb) || $bundleHash !== $currentHash) {
         copy($bundledDb, $tmpDb);
+        file_put_contents($hashFile, $bundleHash);
     }
 } elseif (! file_exists($tmpDb)) {
     touch($tmpDb);
