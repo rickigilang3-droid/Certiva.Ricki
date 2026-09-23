@@ -75,16 +75,16 @@ $_ENV['APP_SERVICES_CACHE'] = '/tmp/storage/framework/cache/services.php';
 putenv('VIEW_COMPILED_PATH=/tmp/storage/framework/views');
 $_ENV['VIEW_COMPILED_PATH'] = '/tmp/storage/framework/views';
 
-// Copy bundled SQLite database to /tmp if not already present and no external DB configured
+// Copy bundled SQLite database to /tmp if not already present or if bundle changed
 $tmpDb = '/tmp/database.sqlite';
 $bundledDb = __DIR__.'/../database/database.sqlite';
 
-if (! file_exists($tmpDb) || filesize($tmpDb) === 0) {
-    if (file_exists($bundledDb) && filesize($bundledDb) > 0) {
+if (file_exists($bundledDb) && filesize($bundledDb) > 0) {
+    if (! file_exists($tmpDb) || filemtime($bundledDb) > filemtime($tmpDb) || filesize($tmpDb) !== filesize($bundledDb)) {
         copy($bundledDb, $tmpDb);
-    } else {
-        touch($tmpDb);
     }
+} elseif (! file_exists($tmpDb)) {
+    touch($tmpDb);
 }
 
 if (! getenv('DB_HOST') && ! getenv('DATABASE_URL')) {
@@ -102,14 +102,24 @@ if (! $appKey || trim($appKey) === '') {
 putenv("APP_KEY={$appKey}");
 $_ENV['APP_KEY'] = $appKey;
 
+if (! getenv('APP_NAME') || getenv('APP_NAME') === '') {
+    putenv('APP_NAME=Certiva');
+    $_ENV['APP_NAME'] = 'Certiva';
+}
+
 if (! getenv('APP_DEBUG') && ! isset($_ENV['APP_DEBUG'])) {
     putenv('APP_DEBUG=true');
     $_ENV['APP_DEBUG'] = 'true';
 }
 
-if (! getenv('SESSION_DRIVER') && ! isset($_ENV['SESSION_DRIVER'])) {
+if (! getenv('SESSION_DRIVER') || getenv('SESSION_DRIVER') === '') {
     putenv('SESSION_DRIVER=cookie');
     $_ENV['SESSION_DRIVER'] = 'cookie';
+}
+
+if (! getenv('SESSION_LIFETIME') || getenv('SESSION_LIFETIME') === '') {
+    putenv('SESSION_LIFETIME=120');
+    $_ENV['SESSION_LIFETIME'] = '120';
 }
 
 if (! getenv('CACHE_STORE') && ! isset($_ENV['CACHE_STORE'])) {

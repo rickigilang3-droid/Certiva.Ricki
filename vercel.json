@@ -18,6 +18,7 @@
   ],
   "env": {
     "APP_ENV": "production",
+    "APP_NAME": "Certiva",
     "APP_DEBUG": "false",
     "APP_KEY": "base64:+Vp7JaY4goZkPGrdAXd6E/kii7q9uMcIlZyvFwdwC2c=",
     "APP_MAINTENANCE_DRIVER": "file",
@@ -26,6 +27,7 @@
     "APP_SERVICES_CACHE": "/tmp/storage/framework/cache/services.php",
     "CACHE_STORE": "array",
     "SESSION_DRIVER": "cookie",
+    "SESSION_LIFETIME": "120",
     "LOG_CHANNEL": "stderr",
     "VIEW_COMPILED_PATH": "/tmp/storage/framework/views"
   }
