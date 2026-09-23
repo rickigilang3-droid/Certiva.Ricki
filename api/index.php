@@ -16,21 +16,6 @@ register_shutdown_function(function () {
 
 // Direct static file delivery for public assets (Vite CSS, JS, images, icons)
 $rawUri = $_SERVER['REQUEST_URI'] ?? '/';
-if (str_starts_with($rawUri, '/debug-probe')) {
-    header('Content-Type: application/json');
-    echo json_encode([
-        'REQUEST_URI' => $_SERVER['REQUEST_URI'] ?? null,
-        'PATH_INFO' => $_SERVER['PATH_INFO'] ?? null,
-        'SCRIPT_NAME' => $_SERVER['SCRIPT_NAME'] ?? null,
-        'public_dir_exists' => is_dir(__DIR__.'/../public'),
-        'build_dir_exists' => is_dir(__DIR__.'/../public/build'),
-        'files_in_public' => @scandir(__DIR__.'/../public'),
-        'files_in_build' => @scandir(__DIR__.'/../public/build'),
-        'files_in_assets' => @scandir(__DIR__.'/../public/build/assets'),
-    ], JSON_PRETTY_PRINT);
-    exit;
-}
-
 $uri = parse_url($rawUri, PHP_URL_PATH);
 $publicFile = __DIR__.'/../public'.$uri;
 if ($uri !== '/' && file_exists($publicFile) && is_file($publicFile)) {
