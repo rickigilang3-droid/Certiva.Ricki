@@ -35,6 +35,9 @@
   "env": {
     "APP_ENV": "production",
     "APP_DEBUG": "true",
+    "APP_STORAGE": "/tmp/storage",
+    "APP_PACKAGES_CACHE": "/tmp/storage/framework/cache/packages.php",
+    "APP_SERVICES_CACHE": "/tmp/storage/framework/cache/services.php",
     "CACHE_STORE": "array",
     "SESSION_DRIVER": "cookie",
     "LOG_CHANNEL": "stderr",

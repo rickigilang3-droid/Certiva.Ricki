@@ -33,6 +33,12 @@ foreach ($storageDirs as $dir) {
 putenv('APP_STORAGE=/tmp/storage');
 $_ENV['APP_STORAGE'] = '/tmp/storage';
 
+putenv('APP_PACKAGES_CACHE=/tmp/storage/framework/cache/packages.php');
+$_ENV['APP_PACKAGES_CACHE'] = '/tmp/storage/framework/cache/packages.php';
+
+putenv('APP_SERVICES_CACHE=/tmp/storage/framework/cache/services.php');
+$_ENV['APP_SERVICES_CACHE'] = '/tmp/storage/framework/cache/services.php';
+
 putenv('VIEW_COMPILED_PATH=/tmp/storage/framework/views');
 $_ENV['VIEW_COMPILED_PATH'] = '/tmp/storage/framework/views';
 
@@ -40,7 +46,7 @@ $_ENV['VIEW_COMPILED_PATH'] = '/tmp/storage/framework/views';
 $tmpDb = '/tmp/database.sqlite';
 $bundledDb = __DIR__.'/../database/database.sqlite';
 
-if (! file_exists($tmpDb)) {
+if (! file_exists($tmpDb) || filesize($tmpDb) === 0) {
     if (file_exists($bundledDb) && filesize($bundledDb) > 0) {
         copy($bundledDb, $tmpDb);
     } else {
