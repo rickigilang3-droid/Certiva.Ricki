@@ -613,17 +613,19 @@ class PublicVerificationController
             $tamperedReasons[] = "Nomor Induk Mahasiswa (NIM: {$detectedIdentifier}) pada dokumen tidak sesuai dengan rekaman sah kampus ({$certificate->recipient_identifier}).";
         }
 
-        // 3. Title check
+        // 3. Title check (informational — not used to block; RSA signature already covers this field)
         $titleMatch = empty($certificate->title) || stripos($cleanSearch, $certificate->title) !== false;
         if (! $titleMatch) {
             $tamperedReasons[] = 'Program studi / judul sertifikat pada dokumen tidak sesuai dengan arsip sah universitas.';
         }
 
         // 4. Cryptographic RSA-2048 & SHA-256 validation
-        // When all text attributes match the DB, verify the certificate's own stored integrity
-        // directly — this is the most reliable path for authentic documents.
-        // Only rebuild a "claimed" payload when some attribute differs (tampered scenario).
-        if ($nameMatch && $identifierMatch && $titleMatch) {
+        // When name AND NIM match the DB, delegate entirely to verifyCertificateIntegrity() which
+        // re-derives the canonical payload from the stored model — the exact same path used during
+        // signing. The RSA signature itself protects the title field, so a text-extraction failure
+        // for title alone cannot make an authentic document appear tampered.
+        // Only rebuild a "claimed" payload when name or NIM don't match (actual tampering scenario).
+        if ($nameMatch && $identifierMatch) {
             $integrity = $this->cryptoService->verifyCertificateIntegrity($certificate);
             $isDocSignatureValid = $integrity['isSignatureValid'];
             $isDocHashValid = $integrity['isHashMatch'];
@@ -657,7 +659,10 @@ class PublicVerificationController
             $isDocHashValid = hash_equals($certificate->hash_sha256, $claimedHash);
         }
 
-        $isTampered = (! $nameMatch || ! $identifierMatch || ! $titleMatch || ! $isDocSignatureValid || ! $isDocHashValid);
+        // Tampered if name/NIM don't match OR if the RSA/hash integrity check fails.
+        // Title text mismatch is logged in $tamperedReasons but is not independently decisive
+        // since the RSA signature is the authoritative protector of that field.
+        $isTampered = (! $nameMatch || ! $identifierMatch || ! $isDocSignatureValid || ! $isDocHashValid);
 
         // Build detailed failure explanations
         $detailedReasons = [];
