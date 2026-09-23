@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Daftar Akun Pengguna - Certiva</title>
+    <title>Daftar Akun Mahasiswa - Certiva</title>
 
     <!-- Inline Theme Script (instant theme detection) -->
     <script>
@@ -179,17 +179,17 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
                         </div>
                         <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                            Daftar Akun
+                            Daftar Akun Mahasiswa
                         </h2>
                         <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-                            Pilih jenis akun untuk mahasiswa atau dewan administrator kampus.
+                            Pendaftaran portal mandiri mahasiswa untuk melihat dan mengunduh sertifikat resmi.
                         </p>
                     </div>
 
                     <!-- Role Notice Box -->
                     <div class="p-3.5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-500/30 text-xs text-indigo-900 dark:text-indigo-200 flex items-start gap-2.5">
                         <svg class="w-4 h-4 shrink-0 mt-0.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span class="leading-relaxed" x-text="role === 'mahasiswa' ? 'Akun Mahasiswa memungkinkan Anda melihat, mengunduh, dan mencetak sertifikat akademik resmi Anda secara mandiri.' : 'Akun Administrator memiliki kewenangan menerbitkan ijazah, memegang kunci privat, dan mengelola arsip digital.'"></span>
+                        <span class="leading-relaxed">Pendaftaran akun publik dikhususkan untuk <strong>Mahasiswa</strong>. Akun Administrator hanya dapat diterbitkan secara resmi oleh pihak otoritas kampus.</span>
                     </div>
 
                     <!-- Errors Alert -->
@@ -211,32 +211,8 @@
                     <form method="POST" action="{{ route('register') }}" class="space-y-4">
                         @csrf
 
-                        <!-- Role Selector -->
+                        <!-- NIM Input (Mahasiswa) -->
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                                Jenis Akun Pengguna
-                            </label>
-                            <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-950/80 rounded-2xl border border-slate-200 dark:border-slate-800">
-                                <button type="button" 
-                                        @click="role = 'mahasiswa'" 
-                                        :class="role === 'mahasiswa' ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/80 dark:border-slate-700' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
-                                        class="py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
-                                    <span>Mahasiswa</span>
-                                </button>
-                                <button type="button" 
-                                        @click="role = 'admin'" 
-                                        :class="role === 'admin' ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/80 dark:border-slate-700' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
-                                        class="py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                                    <span>Administrator</span>
-                                </button>
-                            </div>
-                            <input type="hidden" name="role" :value="role">
-                        </div>
-
-                        <!-- NIM Input (Only for Mahasiswa) -->
-                        <div x-show="role === 'mahasiswa'" x-transition class="space-y-1.5">
                             <label for="identifier" class="block text-xs font-bold text-slate-700 dark:text-slate-300">
                                 Nomor Induk Mahasiswa (NIM) <span class="text-rose-500">*</span>
                             </label>
@@ -244,8 +220,8 @@
                                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 group-focus-within:scale-110 transition-all duration-200">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/></svg>
                                 </div>
-                                <input id="identifier" type="text" name="identifier" x-model="identifier" :required="role === 'mahasiswa'"
-                                       placeholder="misal: 12220199 atau 19200123"
+                                <input id="identifier" type="text" name="identifier" x-model="identifier" required
+                                       placeholder="misal: 1722511839 atau 12220199"
                                        class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950/60 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs font-medium focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 focus:-translate-y-0.5 focus:shadow-md transition-all duration-200 font-mono" />
                             </div>
                             <p class="text-[11px] text-slate-600 dark:text-slate-400">Sertifikat Anda akan otomatis terhubung melalui kecocokan NIM atau email terdaftar.</p>
@@ -254,14 +230,14 @@
                         <!-- Name Input -->
                         <div class="space-y-1.5">
                             <label for="name" class="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                                <span x-text="role === 'mahasiswa' ? 'Nama Lengkap Mahasiswa' : 'Nama Lengkap & Gelar Pejabat'"></span>
+                                Nama Lengkap Mahasiswa <span class="text-rose-500">*</span>
                             </label>
                             <div class="relative group">
                                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 group-focus-within:scale-110 transition-all duration-200">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                                 </div>
                                 <input id="name" type="text" name="name" x-model="name" required autofocus autocomplete="name"
-                                       :placeholder="role === 'mahasiswa' ? 'misal: Siti Nurhaliza' : 'misal: Dr. Ricki Gilang Saputra, M.Kom.'"
+                                       placeholder="misal: Siti Nurhaliza atau Amelia Dwi Oktaviani"
                                        class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950/60 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs font-medium focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 focus:-translate-y-0.5 focus:shadow-md transition-all duration-200" />
                             </div>
                         </div>
@@ -326,7 +302,7 @@
                         <!-- Submit Button -->
                         <button type="submit" class="group relative overflow-hidden w-full mt-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/40 hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer">
                             <div class="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"></div>
-                            <span x-text="role === 'mahasiswa' ? 'Daftar Akun Mahasiswa' : 'Daftar Akun Administrator'"></span>
+                            <span>Daftar Akun Mahasiswa</span>
                             <svg class="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                         </button>
 

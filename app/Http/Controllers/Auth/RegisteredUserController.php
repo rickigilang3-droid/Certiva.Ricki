@@ -30,25 +30,20 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->mergeIfMissing([
-            'role' => 'admin',
-        ]);
-
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'role' => ['required', 'in:admin,mahasiswa'],
-            'identifier' => ['nullable', 'string', 'max:100', 'required_if:role,mahasiswa'],
+            'identifier' => ['required', 'string', 'max:100'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ], [
-            'identifier.required_if' => 'Nomor Induk Mahasiswa (NIM) wajib diisi untuk akun mahasiswa.',
+            'identifier.required' => 'Nomor Induk Mahasiswa (NIM) wajib diisi untuk pendaftaran akun mahasiswa.',
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'role' => $validated['role'] ?? 'admin',
-            'identifier' => $validated['identifier'] ?? null,
+            'role' => 'mahasiswa',
+            'identifier' => $validated['identifier'],
             'password' => Hash::make($validated['password']),
         ]);
 
@@ -56,10 +51,6 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        if ($user->isMahasiswa()) {
-            return redirect()->route('student.certificates');
-        }
-
-        return redirect(route('dashboard', absolute: false));
+        return redirect()->route('student.certificates');
     }
 }
