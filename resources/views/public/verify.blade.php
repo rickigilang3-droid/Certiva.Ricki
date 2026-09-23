@@ -28,6 +28,13 @@
 <body x-data="{
     activeTab: '{{ $errors->has('pdf_file') ? 'pdf' : 'search' }}',
     scanQrModal: false,
+    signatureModal: false,
+    copiedField: '',
+    copyToClipboard(text, fieldName) {
+        navigator.clipboard.writeText(text);
+        this.copiedField = fieldName;
+        setTimeout(() => { this.copiedField = ''; }, 2000);
+    },
     html5QrCode: null,
     scannerError: '',
     pdfFileName: '',
@@ -729,10 +736,16 @@
 
                                     <!-- Action Links -->
                                     <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-                                        <a href="{{ route('verify.download', $certificate->certificate_number) }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-sm transition">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                            <span>Unduh Dokumen PDF Resmi</span>
-                                        </a>
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <a href="{{ route('verify.download', $certificate->certificate_number) }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-sm transition">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                <span>Unduh Dokumen PDF Resmi</span>
+                                            </a>
+                                            <button type="button" @click="signatureModal = true" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-semibold text-xs shadow-sm transition">
+                                                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                                <span>Lihat Tanda Tangan Digital (RSA-2048)</span>
+                                            </button>
+                                        </div>
 
                                         <a href="{{ route('verify.proof', $certificate->certificate_number) }}" target="_blank" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-mono text-slate-700 dark:text-slate-200 transition">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
@@ -801,6 +814,11 @@
                                     <div class="pt-2 text-[11px] text-slate-300 leading-relaxed font-normal">
                                         Setiap karakter pada ijazah terikat matematis dengan tanda tangan RSA-PSS 2048-bit. Manipulasi nama atau tanggal sekecil apapun akan membatalkan validasi.
                                     </div>
+
+                                    <button type="button" @click="signatureModal = true" class="w-full py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-sm">
+                                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        <span>Buka Inspektor Tanda Tangan Digital</span>
+                                    </button>
                                 </div>
                             </div>
 
@@ -1041,6 +1059,122 @@
             </button>
         </div>
     </div>
+
+    @if(isset($certificate) && $certificate)
+    <!-- Modal Inspeksi Tanda Tangan Digital (RSA-2048 & Hash) -->
+    <div x-show="signatureModal" 
+         x-cloak 
+         class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4"
+         @keydown.escape.window="signatureModal = false">
+        <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col p-6 sm:p-8 space-y-6"
+             @click.away="signatureModal = false">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                            Tanda Tangan Digital Kriptografis (RSA-PSS)
+                        </h3>
+                        <p class="text-xs text-slate-500 font-mono">
+                            No. Sertifikat: {{ $certificate->certificate_number }}
+                        </p>
+                    </div>
+                </div>
+                <button type="button" @click="signatureModal = false" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="space-y-4 max-h-[65vh] overflow-y-auto pr-1 text-xs">
+                
+                <!-- 1. Digital Signature Base64 -->
+                <div class="space-y-1.5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <span>1. Tanda Tangan Digital (RSA-2048 Base64)</span>
+                        </span>
+                        <button type="button" 
+                                @click="copyToClipboard('{{ $certificate->signature_rsapss }}', 'signature')"
+                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900 text-indigo-700 dark:text-indigo-300 font-semibold text-[11px] transition">
+                            <span x-text="copiedField === 'signature' ? '✓ Tersalin' : 'Salin Signature'"></span>
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-slate-500">Dibangkitkan oleh Private Key Otoritas Kampus (Dr. Ricki Gilang Saputra):</p>
+                    <div class="p-3 bg-slate-900 text-indigo-300 font-mono text-[10px] rounded-xl break-all select-all max-h-24 overflow-y-auto leading-relaxed border border-slate-800">
+                        {{ $certificate->signature_rsapss }}
+                    </div>
+                </div>
+
+                <!-- 2. Hash SHA-256 Digest -->
+                <div class="space-y-1.5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <span>2. Hash Integritas Dokumen (SHA-256 Digest)</span>
+                        </span>
+                        <button type="button" 
+                                @click="copyToClipboard('{{ $certificate->hash_sha256 }}', 'hash')"
+                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900 text-emerald-700 dark:text-emerald-300 font-semibold text-[11px] transition">
+                            <span x-text="copiedField === 'hash' ? '✓ Tersalin' : 'Salin Hash'"></span>
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-slate-500">Segel matematis atas seluruh atribut data ijazah:</p>
+                    <div class="p-3 bg-slate-900 text-emerald-400 font-mono text-[11px] rounded-xl break-all select-all border border-slate-800">
+                        {{ $certificate->hash_sha256 }}
+                    </div>
+                </div>
+
+                <!-- 3. Kunci Publik Institusi (UBSI PEM) -->
+                <div class="space-y-1.5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                            <span>3. Kunci Publik Institusi (Public Key PEM)</span>
+                        </span>
+                        <button type="button" 
+                                @click="copyToClipboard(`{{ $certificate->cryptoKey->public_key }}`, 'publickey')"
+                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900 text-blue-700 dark:text-blue-300 font-semibold text-[11px] transition">
+                            <span x-text="copiedField === 'publickey' ? '✓ Tersalin' : 'Salin Public Key'"></span>
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-slate-500">Digunakan pihak publik / HRD untuk memverifikasi tanda tangan:</p>
+                    <div class="p-3 bg-slate-900 text-slate-300 font-mono text-[9px] rounded-xl break-all select-all max-h-24 overflow-y-auto whitespace-pre leading-relaxed border border-slate-800">
+{{ $certificate->cryptoKey->public_key }}
+                    </div>
+                </div>
+
+                <!-- 4. Data Kanonikal yang Ditandatangani -->
+                <div class="space-y-1.5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80">
+                    <span class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                        <span>4. Payload Kanonikal yang Disegel</span>
+                    </span>
+                    <p class="text-[11px] text-slate-500">Runtutan string data resmi sebelum di-hash dan di-sign:</p>
+                    <div class="p-3 bg-slate-900 text-cyan-300 font-mono text-[9px] rounded-xl break-all select-all max-h-24 overflow-y-auto leading-relaxed border border-slate-800 whitespace-pre">
+                        {{ is_array($certificate->canonical_payload) ? json_encode($certificate->canonical_payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) : $certificate->canonical_payload }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+                <a href="{{ route('verify.proof', $certificate->certificate_number) }}" target="_blank" class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    <span>Unduh Bukti Kriptografis Raw (JSON)</span>
+                </a>
+                <button type="button" @click="signatureModal = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <!-- Footer -->
     <footer class="border-t border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur py-8 text-center text-xs text-slate-600 dark:text-slate-400 relative z-10 font-medium">

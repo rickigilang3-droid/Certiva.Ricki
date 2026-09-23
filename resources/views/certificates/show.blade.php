@@ -202,6 +202,21 @@
                                 {{ $certificate->cryptoKey->key_id }} ({{ $certificate->cryptoKey->fingerprint }})
                             </div>
                         </div>
+
+                        <div class="space-y-1 text-[10px] pt-1" x-data="{ showRawSig: false, copiedSig: false }">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-400 uppercase tracking-wider block">Tanda Tangan Digital (Base64):</span>
+                                <button type="button" @click="showRawSig = !showRawSig" class="text-indigo-300 hover:text-indigo-200 underline text-[10px]" x-text="showRawSig ? 'Sembunyikan' : 'Lihat Signature'"></button>
+                            </div>
+                            <div x-show="showRawSig" x-cloak class="mt-1 space-y-2">
+                                <div class="font-mono text-[9px] bg-black/50 p-2 rounded break-all text-indigo-200 max-h-24 overflow-y-auto border border-white/10 select-all">
+                                    {{ $certificate->signature_rsapss }}
+                                </div>
+                                <button type="button" @click="navigator.clipboard.writeText('{{ $certificate->signature_rsapss }}'); copiedSig = true; setTimeout(() => copiedSig = false, 2000)" class="w-full py-1 rounded bg-indigo-600/40 hover:bg-indigo-600/60 text-white font-semibold text-[10px] transition">
+                                    <span x-text="copiedSig ? '✓ Signature Tersalin' : 'Salin String Signature'"></span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Revocation Control -->
