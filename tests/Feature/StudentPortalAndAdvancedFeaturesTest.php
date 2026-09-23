@@ -172,6 +172,132 @@ class StudentPortalAndAdvancedFeaturesTest extends TestCase
         ]);
 
         $response->assertRedirect(route('verify.show', ['certificate_number' => $cert->certificate_number]));
+        $response->assertSessionHas('pdf_audit', function ($audit) {
+            return $audit['is_tampered'] === false
+                && $audit['name_match'] === true
+                && $audit['identifier_match'] === true;
+        });
+
+        $follow = $this->followingRedirects()->post('/verify/pdf-upload', [
+            'pdf_file' => $fakePdf,
+        ]);
+        $follow->assertStatus(200);
+        $follow->assertSee('Hasil Analisis Forensik Dokumen PDF Unggahan');
+        $follow->assertSee('Berkas 100% Asli');
+    }
+
+    public function test_uploaded_pdf_with_altered_recipient_name_is_detected_as_tampered(): void
+    {
+        $cert = $this->createTestCertificate('CERT-2026-TAMPER-NAME', 'Amelia Dwi Oktaviani', 'amelia@bsi.ac.id', '1722511839');
+
+        $pdfService = app(CertificatePdfService::class);
+        $pdfPath = $pdfService->generateAndSavePdf($cert);
+        $rawPdf = Storage::disk('public')->get($pdfPath);
+
+        // Attacker alters the recipient name inside PDF content from Amelia to Baki Udin
+        // We simulate altering decompressed stream (checking both UTF-8 and UTF-16BE representations)
+        $targetUtf16 = mb_convert_encoding('Amelia Dwi Oktaviani', 'UTF-16BE', 'UTF-8');
+        $replacementUtf16 = mb_convert_encoding('Baki Udin', 'UTF-16BE', 'UTF-8');
+
+        $tamperedPdfContent = preg_replace_callback('/stream[\r\n]+(.*?)[\r\n]+endstream/s', function ($matches) use ($targetUtf16, $replacementUtf16) {
+            $uncompressed = @gzuncompress($matches[1]);
+            if ($uncompressed) {
+                $modified = false;
+                if (str_contains($uncompressed, $targetUtf16)) {
+                    $uncompressed = str_replace($targetUtf16, $replacementUtf16, $uncompressed);
+                    $modified = true;
+                }
+                if (str_contains($uncompressed, 'Amelia Dwi Oktaviani')) {
+                    $uncompressed = str_replace('Amelia Dwi Oktaviani', 'Baki Udin', $uncompressed);
+                    $modified = true;
+                }
+
+                if ($modified) {
+                    return "stream\r\n".gzcompress($uncompressed)."\r\nendstream";
+                }
+            }
+
+            return $matches[0];
+        }, $rawPdf);
+
+        // Also replace in PDF metadata / Title
+        $tamperedPdfContent = str_replace(
+            [$targetUtf16, 'Amelia Dwi Oktaviani'],
+            [$replacementUtf16, 'Baki Udin'],
+            $tamperedPdfContent
+        );
+
+        $fakePdf = UploadedFile::fake()->createWithContent('tampered.pdf', $tamperedPdfContent);
+
+        $response = $this->post('/verify/pdf-upload', [
+            'pdf_file' => $fakePdf,
+        ]);
+
+        $response->assertRedirect(route('verify.show', ['certificate_number' => $cert->certificate_number]));
+        $response->assertSessionHas('pdf_audit', function ($audit) {
+            return $audit['is_tampered'] === true && $audit['name_match'] === false;
+        });
+
+        $follow = $this->followingRedirects()->post('/verify/pdf-upload', [
+            'pdf_file' => $fakePdf,
+        ]);
+        $follow->assertStatus(200);
+        $follow->assertSee('Manipulasi Terdeteksi');
+        $follow->assertSee('Tidak Cocok (Diedit)');
+        $follow->assertSee('Sertifikat Tidak Valid');
+        $follow->assertSee('Alasan Verifikasi Gagal');
+        $follow->assertSee('Signature Digital Tidak Cocok');
+        $follow->assertSee('Data Sertifikat Telah Berubah');
+        $follow->assertSee('Integritas Dokumen Gagal Diverifikasi');
+        $follow->assertSee('Hasil Audit Kriptografis');
+        $follow->assertSee('Baki Udin');
+        $follow->assertSee('Amelia Dwi Oktaviani');
+        $follow->assertSee('Kesimpulan:');
+    }
+
+    public function test_uploaded_pdf_with_altered_nim_is_detected_as_tampered(): void
+    {
+        $cert = $this->createTestCertificate('CERT-2026-TAMPER-NIM', 'Amelia Dwi Oktaviani', 'amelia@bsi.ac.id', '1722511839');
+
+        $pdfService = app(CertificatePdfService::class);
+        $pdfPath = $pdfService->generateAndSavePdf($cert);
+        $rawPdf = Storage::disk('public')->get($pdfPath);
+
+        // Attacker alters the NIM inside PDF from 1722511839 to 9999999999
+        $targetNimUtf16 = mb_convert_encoding('1722511839', 'UTF-16BE', 'UTF-8');
+        $replacementNimUtf16 = mb_convert_encoding('9999999999', 'UTF-16BE', 'UTF-8');
+
+        $tamperedPdfContent = preg_replace_callback('/stream[\r\n]+(.*?)[\r\n]+endstream/s', function ($matches) use ($targetNimUtf16, $replacementNimUtf16) {
+            $uncompressed = @gzuncompress($matches[1]);
+            if ($uncompressed) {
+                $modified = false;
+                if (str_contains($uncompressed, $targetNimUtf16)) {
+                    $uncompressed = str_replace($targetNimUtf16, $replacementNimUtf16, $uncompressed);
+                    $modified = true;
+                }
+                if (str_contains($uncompressed, '1722511839')) {
+                    $uncompressed = str_replace('1722511839', '9999999999', $uncompressed);
+                    $modified = true;
+                }
+
+                if ($modified) {
+                    return "stream\r\n".gzcompress($uncompressed)."\r\nendstream";
+                }
+            }
+
+            return $matches[0];
+        }, $rawPdf);
+
+        $fakePdf = UploadedFile::fake()->createWithContent('tampered_nim.pdf', $tamperedPdfContent);
+
+        $response = $this->post('/verify/pdf-upload', [
+            'pdf_file' => $fakePdf,
+        ]);
+
+        $response->assertRedirect(route('verify.show', ['certificate_number' => $cert->certificate_number]));
+        $response->assertSessionHas('pdf_audit', function ($audit) {
+            return $audit['is_tampered'] === true && $audit['identifier_match'] === false;
+        });
     }
 
     public function test_revoked_certificate_shows_revoked_status_and_watermark(): void

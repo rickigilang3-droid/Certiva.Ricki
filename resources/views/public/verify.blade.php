@@ -363,21 +363,188 @@
                             </div>
 
                         @else
-                            <!-- Tampered Warning -->
-                            <div class="rounded-2xl border border-rose-400 dark:border-rose-800 bg-rose-500/10 p-6 flex flex-col sm:flex-row items-start gap-5 shadow-sm">
-                                <div class="w-14 h-14 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-md">
-                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <!-- Tampered / Invalid Forensic Report -->
+                            <div class="rounded-3xl border-2 border-rose-500 bg-white dark:bg-slate-900 shadow-xl overflow-hidden">
+                                <!-- Top Danger Header -->
+                                <div class="bg-gradient-to-r from-rose-600 via-rose-700 to-red-800 p-6 sm:p-8 text-white">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center shrink-0 text-3xl font-black shadow-inner">
+                                                ✕
+                                            </div>
+                                            <div class="space-y-1">
+                                                <div class="flex flex-wrap items-center gap-2">
+                                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-600 border border-white/20 text-white">
+                                                        Peringatan: Integritas Gagal
+                                                    </span>
+                                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-white text-rose-700 shadow-sm">
+                                                        Status Akhir: INVALID
+                                                    </span>
+                                                </div>
+                                                <h2 class="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                                                    Sertifikat Tidak Valid &bull; Sertifikat Terindikasi Dimanipulasi / Dipalsukan
+                                                </h2>
+                                                <p class="text-xs sm:text-sm text-rose-100 font-medium">
+                                                    Manipulasi Terdeteksi &bull; Integritas kriptografis dokumen gagal divalidasi oleh sistem
+                                                </p>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Certificate ID Badge -->
+                                        <div class="sm:text-right bg-white/10 backdrop-blur-sm px-4 py-3 rounded-2xl border border-white/20">
+                                            <div class="text-[11px] font-bold text-rose-200 uppercase tracking-wider">Certificate ID</div>
+                                            <div class="font-mono text-base sm:text-lg font-black tracking-wider text-white">
+                                                {{ $certificate->certificate_number }}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="space-y-2 flex-1">
-                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-600 text-white">
-                                        Peringatan: Integritas Gagal
+
+                                <!-- Body: Failure Reasons + Audit Table + Conclusion -->
+                                <div class="p-6 sm:p-8 space-y-8">
+                                    
+                                    <!-- 1. Alasan Verifikasi Gagal -->
+                                    <div class="space-y-4">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-7 h-7 rounded-lg bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold text-sm">
+                                                !
+                                            </div>
+                                            <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">
+                                                Alasan Verifikasi Gagal
+                                            </h3>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 gap-4">
+                                            @if(!empty($forensicAudit['detailed_reasons']))
+                                                @foreach($forensicAudit['detailed_reasons'] as $reason)
+                                                    <div class="p-5 rounded-2xl bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 space-y-2">
+                                                        <div class="flex items-start gap-3">
+                                                            <span class="w-6 h-6 rounded-full bg-rose-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                                                {{ $reason['number'] }}
+                                                            </span>
+                                                            <div class="space-y-2 flex-1">
+                                                                <h4 class="font-bold text-sm text-rose-950 dark:text-rose-200">
+                                                                    {{ $reason['title'] }}
+                                                                </h4>
+                                                                <p class="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                                                                    {{ $reason['description'] }}
+                                                                </p>
+
+                                                                @if(!empty($reason['comparison']))
+                                                                    <div class="mt-3 p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-900/40 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                                                        <div class="p-3 rounded-xl bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/30">
+                                                                            <div class="text-[11px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Data {{ $reason['comparison']['field'] }} pada Dokumen:</div>
+                                                                            <div class="font-black text-sm text-slate-900 dark:text-white mt-1.5 font-mono">
+                                                                                {{ $reason['comparison']['document'] }}
+                                                                            </div>
+                                                                            <div class="text-[11px] text-rose-600 dark:text-rose-400 font-bold mt-1">✕ Tidak Cocok (Diedit)</div>
+                                                                        </div>
+                                                                        <div class="p-3 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/30">
+                                                                            <div class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Data Resmi Tercatat pada Database Penerbit:</div>
+                                                                            <div class="font-black text-sm text-slate-900 dark:text-white mt-1.5 font-mono">
+                                                                                {{ $reason['comparison']['database'] }}
+                                                                            </div>
+                                                                            <div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-1">✓ Arsip Resmi UBSI</div>
+                                                                        </div>
+                                                                    </div>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            @else
+                                                <div class="p-5 rounded-2xl bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 space-y-2">
+                                                    <div class="flex items-start gap-3">
+                                                        <span class="w-6 h-6 rounded-full bg-rose-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
+                                                        <div class="space-y-1">
+                                                            <h4 class="font-bold text-sm text-rose-950 dark:text-rose-200">Signature Digital Tidak Cocok</h4>
+                                                            <p class="text-xs sm:text-sm text-slate-700 dark:text-slate-300">
+                                                                Signature digital pada dokumen tidak sesuai dengan data sertifikat yang terdaftar di sistem.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <!-- 2. Tabel Hasil Audit -->
+                                    <div class="space-y-3">
+                                        <h3 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                            <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                            <span>Hasil Audit Kriptografis & Forensik</span>
+                                        </h3>
+
+                                        <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+                                            <table class="w-full text-left text-xs">
+                                                <thead class="bg-slate-100 dark:bg-slate-800/70 text-slate-700 dark:text-slate-300 uppercase font-black tracking-wider text-[11px]">
+                                                    <tr>
+                                                        <th class="py-3 px-4">Pemeriksaan</th>
+                                                        <th class="py-3 px-4">Hasil</th>
+                                                        <th class="py-3 px-4">Keterangan / Temuan Forensik</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
+                                                    @foreach(($forensicAudit['audit_checks'] ?? []) as $check)
+                                                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                                                            <td class="py-3.5 px-4 font-bold text-slate-900 dark:text-white whitespace-nowrap">
+                                                                {{ $check['item'] }}
+                                                            </td>
+                                                            <td class="py-3.5 px-4 whitespace-nowrap">
+                                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black {{ $check['result'] === 'valid' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300' }}">
+                                                                    {{ $check['badge'] }}
+                                                                </span>
+                                                            </td>
+                                                            <td class="py-3.5 px-4 text-slate-600 dark:text-slate-300 font-medium">
+                                                                {{ $check['detail'] }}
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- 3. Kesimpulan Resmi -->
+                                    <div class="p-4 sm:p-5 rounded-2xl bg-slate-100 dark:bg-slate-800/70 border-l-4 border-rose-600 text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed">
+                                        <strong class="font-extrabold text-slate-900 dark:text-white">Kesimpulan:</strong> 
+                                        {{ $forensicAudit['conclusion'] ?? 'Dokumen tidak dapat dinyatakan sebagai sertifikat yang valid karena data pada dokumen tidak sesuai dengan data yang telah ditandatangani secara digital.' }}
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if(!empty($pdfAudit) && !($pdfAudit['is_tampered'] ?? false))
+                            <!-- Forensic PDF Audit Card for Authentic Document -->
+                            <div class="rounded-2xl border border-emerald-300 bg-emerald-50/40 dark:bg-emerald-950/20 p-5 space-y-3 shadow-sm">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Hasil Analisis Forensik Dokumen PDF Unggahan</h3>
+                                    </div>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase bg-emerald-600 text-white">
+                                        Berkas 100% Asli
                                     </span>
-                                    <h2 class="text-xl font-bold text-rose-950 dark:text-rose-200">
-                                        Sertifikat Terindikasi Dimanipulasi / Dipalsukan
-                                    </h2>
-                                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-                                        Tanda tangan kriptografis RSA-PSS tidak cocok dengan data sertifikat. Dokumen kemungkinan telah diedit secara ilegal (nama penerima, tanggal, atau nilai telah diganti).
-                                    </p>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                                    <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                                        <div class="text-slate-500 font-medium">Nama pada Dokumen:</div>
+                                        <div class="font-bold mt-1 text-emerald-600 dark:text-emerald-400">
+                                            ✓ Cocok dengan Kriptografi
+                                        </div>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                                        <div class="text-slate-500 font-medium">NIM pada Dokumen:</div>
+                                        <div class="font-bold mt-1 text-emerald-600 dark:text-emerald-400">
+                                            ✓ Sesuai Arsip Kampus
+                                        </div>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                                        <div class="text-slate-500 font-medium">Segel Digital RSA-2048:</div>
+                                        <div class="font-bold mt-1 text-emerald-600 dark:text-emerald-400">
+                                            ✓ Sah (Kunci Publik UBSI)
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         @endif

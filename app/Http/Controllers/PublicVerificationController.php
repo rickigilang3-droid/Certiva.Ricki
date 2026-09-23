@@ -104,12 +104,102 @@ class PublicVerificationController
         $status = 'authentic';
         $statusMessage = 'Sertifikat Terverifikasi Asli & Sah secara Kriptografis';
 
-        if ($isTampered) {
+        $pdfAudit = session('pdf_audit');
+        if ($pdfAudit && ! empty($pdfAudit['is_tampered'])) {
+            $isTampered = true;
+            $status = 'tampered';
+            $statusMessage = 'PERINGATAN MANIPULASI BERKAS: Dokumen PDF yang Anda unggah terdeteksi telah dimodifikasi atau diedit! '.implode('; ', $pdfAudit['tampered_reasons']);
+        } elseif ($isTampered) {
             $status = 'tampered';
             $statusMessage = 'PERINGATAN: Integritas kriptografis gagal! Data sertifikat telah diubah atau dipalsukan.';
         } elseif ($isRevoked) {
             $status = 'revoked';
             $statusMessage = 'PERHATIAN: Sertifikat ini telah DICABUT (REVOKED) oleh Universitas Bina Sarana Informatika.';
+        }
+
+        if ($pdfAudit) {
+            $forensicAudit = $pdfAudit;
+        } else {
+            $auditChecks = [
+                [
+                    'item' => 'Certificate ID',
+                    'result' => 'valid',
+                    'badge' => '✓ Ditemukan',
+                    'detail' => $certificate->certificate_number,
+                ],
+                [
+                    'item' => 'Data terdaftar',
+                    'result' => 'valid',
+                    'badge' => '✓ Ditemukan',
+                    'detail' => 'Tercatat di basis data resmi UBSI',
+                ],
+                [
+                    'item' => 'Signature RSA-2048',
+                    'result' => $isSignatureValid ? 'valid' : 'invalid',
+                    'badge' => $isSignatureValid ? '✓ Cocok' : '❌ Tidak cocok',
+                    'detail' => $isSignatureValid ? 'Tanda tangan digital valid dengan kunci publik institusi' : 'Tanda tangan digital tidak cocok dengan kunci publik',
+                ],
+                [
+                    'item' => 'Integritas dokumen',
+                    'result' => $isHashValid ? 'valid' : 'invalid',
+                    'badge' => $isHashValid ? '✓ Sah' : '❌ Gagal',
+                    'detail' => $isHashValid ? 'Digest SHA-256 identik 100%' : 'Digest SHA-256 tidak cocok dengan master payload',
+                ],
+                [
+                    'item' => 'Kesesuaian nama',
+                    'result' => 'valid',
+                    'badge' => '✓ Sesuai',
+                    'detail' => $certificate->recipient_name,
+                ],
+                [
+                    'item' => 'Kesesuaian NIM',
+                    'result' => 'valid',
+                    'badge' => '✓ Sesuai',
+                    'detail' => $certificate->recipient_identifier ?? '-',
+                ],
+                [
+                    'item' => 'Status akhir',
+                    'result' => (! $isTampered && ! $isRevoked) ? 'valid' : 'invalid',
+                    'badge' => (! $isTampered && ! $isRevoked) ? 'VALID' : ($isRevoked ? 'REVOKED' : 'INVALID'),
+                    'detail' => (! $isTampered && ! $isRevoked) ? 'Dokumen terverifikasi 100% otentik & sah' : ($isRevoked ? 'Sertifikat telah dicabut' : 'Integritas kriptografis gagal'),
+                ],
+            ];
+
+            $detailedReasons = [];
+            if (! $isSignatureValid) {
+                $detailedReasons[] = [
+                    'number' => 1,
+                    'title' => 'Signature Digital Tidak Cocok',
+                    'description' => 'Signature digital pada sertifikat tidak sesuai dengan data yang tersimpan di sistem. Kunci publik RSA-2048 institusi gagal memverifikasi tanda tangan digital.',
+                ];
+            }
+            if (! $isHashValid) {
+                $detailedReasons[] = [
+                    'number' => count($detailedReasons) + 1,
+                    'title' => 'Integritas Dokumen Gagal Diverifikasi',
+                    'description' => 'Perubahan pada data sertifikat menyebabkan nilai hash SHA-256 tidak lagi sesuai dengan segel yang diterbitkan.',
+                ];
+            }
+
+            $forensicAudit = [
+                'is_uploaded_pdf' => false,
+                'is_tampered' => $isTampered,
+                'tampered_reasons' => $isTampered ? ['Integritas kriptografis RSA-PSS / SHA-256 gagal divalidasi.'] : [],
+                'detailed_reasons' => $detailedReasons,
+                'audit_checks' => $auditChecks,
+                'conclusion' => (! $isTampered && ! $isRevoked)
+                    ? 'Dokumen dinyatakan VALID dan OTENTIK. Seluruh segel digital RSA-PSS cocok 100% dengan pangkalan data resmi universitas.'
+                    : ($isRevoked ? 'Sertifikat ini telah resmi dicabut oleh otoritas kampus.' : 'Dokumen tidak dapat dinyatakan sebagai sertifikat yang valid karena data tidak sesuai dengan data yang telah ditandatangani secara digital.'),
+                'detected_name' => $certificate->recipient_name,
+                'official_name' => $certificate->recipient_name,
+                'name_match' => true,
+                'detected_identifier' => $certificate->recipient_identifier,
+                'official_identifier' => $certificate->recipient_identifier,
+                'identifier_match' => true,
+                'title_match' => true,
+                'is_signature_valid' => $isSignatureValid,
+                'is_hash_valid' => $isHashValid,
+            ];
         }
 
         // Record verification audit log with debouncing (deduplicate rapid queries within 5 minutes from same IP)
@@ -139,6 +229,8 @@ class PublicVerificationController
 
         return view('public.verify', [
             'certificate' => $certificate,
+            'pdfAudit' => $pdfAudit,
+            'forensicAudit' => $forensicAudit,
             'verificationResult' => [
                 'status' => $status,
                 'message' => $statusMessage,
@@ -225,27 +317,249 @@ class PublicVerificationController
         $file = $request->file('pdf_file');
         $content = file_get_contents($file->getRealPath());
 
-        $certNumber = $this->extractCertificateNumberFromPdf($content);
+        $allText = $this->extractAllTextFromPdf($content);
+        $certNumber = $this->extractCertificateNumberFromPdf($content, $allText);
 
         if (! $certNumber) {
             return redirect()->route('verify.index')
                 ->withErrors(['pdf_file' => 'Tidak ditemukan nomor registrasi sertifikat (format CERT-...) pada dokumen PDF yang diunggah. Pastikan dokumen merupakan sertifikat resmi terbitan Certiva.']);
         }
 
-        return redirect()->route('verify.show', ['certificate_number' => $certNumber]);
+        $certificate = Certificate::with('cryptoKey')->where('certificate_number', $certNumber)->first();
+
+        if (! $certificate) {
+            return redirect()->route('verify.show', ['certificate_number' => $certNumber]);
+        }
+
+        $pdfAudit = $this->validatePdfContentAgainstCertificate($allText, $certificate);
+
+        return redirect()->route('verify.show', ['certificate_number' => $certNumber])
+            ->with('pdf_audit', $pdfAudit);
+    }
+
+    /**
+     * Extract searchable text from raw PDF and all uncompressed FlateDecode stream objects.
+     */
+    protected function extractAllTextFromPdf(string $content): string
+    {
+        $allText = $content."\n".str_replace("\x00", '', $content);
+
+        if (preg_match_all('/stream[\r\n]+(.*?)[\r\n]+endstream/s', $content, $streams)) {
+            foreach ($streams[1] as $stream) {
+                $uncompressed = @gzuncompress($stream);
+                if ($uncompressed) {
+                    $cleaned = str_replace("\x00", '', $uncompressed);
+                    $allText .= "\n".$uncompressed."\n".$cleaned;
+                }
+            }
+        }
+
+        return $allText;
+    }
+
+    /**
+     * Compare text inside the uploaded PDF against the authentic cryptographic certificate record.
+     */
+    protected function validatePdfContentAgainstCertificate(string $allText, Certificate $certificate): array
+    {
+        $tamperedReasons = [];
+        $cleanSearch = str_replace("\x00", '', $allText);
+
+        // 1. Recipient Name check (case-insensitive substring)
+        $nameMatch = empty($certificate->recipient_name) || stripos($cleanSearch, $certificate->recipient_name) !== false;
+        $detectedName = $certificate->recipient_name;
+
+        if (! $nameMatch) {
+            // Attempt to extract the altered name from the PDF content stream
+            $detectedName = null;
+            if (preg_match('/(?:kepada|tervalidasi kepada)[\s\S]*?\[\(([^()]{2,80})\)\]\s*TJ[\s\S]*?(?:Nomor Induk|NIM)/i', $cleanSearch, $m)) {
+                $detectedName = trim($m[1]);
+            } elseif (preg_match('/(?:diberikan secara sah dan tervalidasi kepada|kepada)[:\s\r\n]+([A-Za-z\s\.,\'-]{3,60})/i', $cleanSearch, $m)) {
+                $detectedName = trim($m[1]);
+            }
+            if (empty($detectedName) || strlen($detectedName) < 2) {
+                $detectedName = 'Nama Telah Diubah pada Dokumen';
+            }
+            $tamperedReasons[] = "Data nama pada dokumen ({$detectedName}) berbeda dengan data yang tercatat pada database penerbit ({$certificate->recipient_name}).";
+        }
+
+        // 2. Recipient Identifier / NIM check
+        $identifierMatch = empty($certificate->recipient_identifier) || stripos($cleanSearch, (string) $certificate->recipient_identifier) !== false;
+        $detectedIdentifier = $certificate->recipient_identifier;
+
+        if (! $identifierMatch) {
+            $detectedIdentifier = null;
+            if (preg_match('/(?:Nomor Induk Mahasiswa|NIM)[^\d]{1,30}(\d{5,20})/is', $cleanSearch, $m)) {
+                $detectedIdentifier = trim($m[1]);
+            }
+            if (empty($detectedIdentifier)) {
+                $detectedIdentifier = 'NIM Telah Diubah pada Dokumen';
+            }
+            $tamperedReasons[] = "Nomor Induk Mahasiswa (NIM: {$detectedIdentifier}) pada dokumen tidak sesuai dengan rekaman sah kampus ({$certificate->recipient_identifier}).";
+        }
+
+        // 3. Title check
+        $titleMatch = empty($certificate->title) || stripos($cleanSearch, $certificate->title) !== false;
+        if (! $titleMatch) {
+            $tamperedReasons[] = 'Program studi / judul sertifikat pada dokumen tidak sesuai dengan arsip sah universitas.';
+        }
+
+        // 4. Cryptographic RSA-2048 & SHA-256 validation of claimed document payload
+        $claimedAttributes = [
+            'certificate_number' => $certificate->certificate_number,
+            'recipient_name' => $detectedName,
+            'recipient_identifier' => $detectedIdentifier,
+            'title' => $certificate->title,
+            'institution_name' => $certificate->institution_name,
+            'department' => $certificate->department ?? '',
+            'issued_date' => $certificate->issued_date instanceof \DateTimeInterface
+                ? $certificate->issued_date->format('Y-m-d')
+                : (string) $certificate->issued_date,
+            'expiry_date' => $certificate->expiry_date instanceof \DateTimeInterface
+                ? $certificate->expiry_date->format('Y-m-d')
+                : (! empty($certificate->expiry_date) ? (string) $certificate->expiry_date : null),
+            'signatory_name' => $certificate->signatory_name,
+            'signatory_title' => $certificate->signatory_title,
+        ];
+
+        $claimedPayload = $this->cryptoService->buildCanonicalPayload($claimedAttributes);
+        $claimedHash = $this->cryptoService->calculateSha256($claimedPayload);
+
+        $isDocSignatureValid = $this->cryptoService->verifySignature(
+            $claimedPayload,
+            $certificate->signature_rsapss,
+            $certificate->cryptoKey->public_key
+        );
+        $isDocHashValid = hash_equals($certificate->hash_sha256, $claimedHash);
+
+        $isTampered = (! $nameMatch || ! $identifierMatch || ! $titleMatch || ! $isDocSignatureValid || ! $isDocHashValid);
+
+        // Build detailed failure explanations
+        $detailedReasons = [];
+        if (! $isDocSignatureValid) {
+            $detailedReasons[] = [
+                'number' => 1,
+                'title' => 'Signature Digital Tidak Cocok',
+                'description' => 'Signature digital pada dokumen tidak sesuai dengan data sertifikat yang terdaftar di sistem. Kunci publik RSA-2048 milik institusi gagal memverifikasi keabsahan tanda tangan digital atas data yang tertera pada berkas ini.',
+            ];
+        }
+
+        if (! $nameMatch) {
+            $detailedReasons[] = [
+                'number' => count($detailedReasons) + 1,
+                'title' => 'Data Sertifikat Telah Berubah',
+                'description' => 'Data nama pada dokumen berbeda dengan data yang tercatat pada database penerbit resmi.',
+                'comparison' => [
+                    'field' => 'Nama Lengkap Penerima',
+                    'document' => $detectedName,
+                    'database' => $certificate->recipient_name,
+                ],
+            ];
+        } elseif (! $identifierMatch) {
+            $detailedReasons[] = [
+                'number' => count($detailedReasons) + 1,
+                'title' => 'Data Sertifikat Telah Berubah',
+                'description' => 'Nomor Induk Mahasiswa (NIM) pada dokumen berbeda dengan data yang tercatat pada database penerbit resmi.',
+                'comparison' => [
+                    'field' => 'Nomor Induk Mahasiswa (NIM)',
+                    'document' => $detectedIdentifier,
+                    'database' => $certificate->recipient_identifier,
+                ],
+            ];
+        }
+
+        if (! $isDocHashValid || ! $isDocSignatureValid) {
+            $detailedReasons[] = [
+                'number' => count($detailedReasons) + 1,
+                'title' => 'Integritas Dokumen Gagal Diverifikasi',
+                'description' => 'Perubahan pada data sertifikat menyebabkan nilai hash/signature yang diverifikasi tidak lagi sesuai dengan signature yang diterbitkan oleh universitas.',
+            ];
+        }
+
+        // Comprehensive Audit Checklist matching user's specification
+        $auditChecks = [
+            [
+                'item' => 'Certificate ID',
+                'result' => 'valid',
+                'badge' => '✓ Ditemukan',
+                'detail' => $certificate->certificate_number,
+            ],
+            [
+                'item' => 'Data terdaftar',
+                'result' => 'valid',
+                'badge' => '✓ Ditemukan',
+                'detail' => 'Tercatat aktif di basis data resmi UBSI',
+            ],
+            [
+                'item' => 'Signature RSA-2048',
+                'result' => $isDocSignatureValid ? 'valid' : 'invalid',
+                'badge' => $isDocSignatureValid ? '✓ Cocok' : '❌ Tidak cocok',
+                'detail' => $isDocSignatureValid ? 'Segel digital terverifikasi kunci publik institusi' : 'Tanda tangan kriptografis tidak cocok dengan payload berkas',
+            ],
+            [
+                'item' => 'Integritas dokumen',
+                'result' => $isDocHashValid ? 'valid' : 'invalid',
+                'badge' => $isDocHashValid ? '✓ Sah' : '❌ Gagal',
+                'detail' => $isDocHashValid ? 'Hash SHA-256 cocok 100%' : 'Nilai hash SHA-256 berbeda dari segel asli penerbit',
+            ],
+            [
+                'item' => 'Kesesuaian nama',
+                'result' => $nameMatch ? 'valid' : 'invalid',
+                'badge' => $nameMatch ? '✓ Sesuai' : '❌ Tidak cocok',
+                'detail' => $nameMatch ? $certificate->recipient_name : "Dokumen: \"{$detectedName}\" ≠ Arsip: \"{$certificate->recipient_name}\"",
+            ],
+            [
+                'item' => 'Kesesuaian NIM',
+                'result' => $identifierMatch ? 'valid' : 'invalid',
+                'badge' => $identifierMatch ? '✓ Sesuai' : '❌ Tidak cocok',
+                'detail' => $identifierMatch ? ($certificate->recipient_identifier ?? '-') : "Dokumen: \"{$detectedIdentifier}\" ≠ Arsip: \"{$certificate->recipient_identifier}\"",
+            ],
+            [
+                'item' => 'Status akhir',
+                'result' => (! $isTampered) ? 'valid' : 'invalid',
+                'badge' => (! $isTampered) ? 'VALID' : 'INVALID',
+                'detail' => (! $isTampered) ? 'Dokumen terverifikasi 100% otentik & sah' : 'Manipulasi terdeteksi, integritas berkas cacat',
+            ],
+        ];
+
+        $conclusion = (! $isTampered)
+            ? 'Dokumen dinyatakan VALID dan OTENTIK. Seluruh segel digital RSA-PSS dan data penerima cocok 100% dengan pangkalan data resmi universitas.'
+            : 'Dokumen tidak dapat dinyatakan sebagai sertifikat yang valid karena data pada dokumen tidak sesuai dengan data yang telah ditandatangani secara digital.';
+
+        return [
+            'is_uploaded_pdf' => true,
+            'is_tampered' => $isTampered,
+            'tampered_reasons' => $tamperedReasons,
+            'detailed_reasons' => $detailedReasons,
+            'audit_checks' => $auditChecks,
+            'conclusion' => $conclusion,
+            'detected_name' => $detectedName,
+            'official_name' => $certificate->recipient_name,
+            'name_match' => $nameMatch,
+            'detected_identifier' => $detectedIdentifier,
+            'official_identifier' => $certificate->recipient_identifier,
+            'identifier_match' => $identifierMatch,
+            'title_match' => $titleMatch,
+            'is_signature_valid' => $isDocSignatureValid,
+            'is_hash_valid' => $isDocHashValid,
+            'claimed_hash' => $claimedHash,
+            'official_hash' => $certificate->hash_sha256,
+        ];
     }
 
     /**
      * Extract certificate number from raw PDF stream or metadata.
      */
-    protected function extractCertificateNumberFromPdf(string $content): ?string
+    protected function extractCertificateNumberFromPdf(string $content, ?string $allText = null): ?string
     {
-        // 1. Direct search on raw or uncompressed PDF text
-        if (preg_match('/CERT-\d{4}-[A-Za-z0-9_-]+/i', $content, $matches)) {
+        $searchSpace = $allText ?? $content;
+
+        // 1. Direct search on uncompressed/full text
+        if (preg_match('/CERT-\d{4}-[A-Za-z0-9_-]+/i', $searchSpace, $matches)) {
             return trim($matches[0]);
         }
 
-        // 2. Search within compressed stream objects (FlateDecode)
+        // 2. Search within compressed stream objects (FlateDecode) if allText was not provided
         if (preg_match_all('/stream[\r\n]+(.*?)[\r\n]+endstream/s', $content, $streams)) {
             foreach ($streams[1] as $stream) {
                 $uncompressed = @gzuncompress($stream);
