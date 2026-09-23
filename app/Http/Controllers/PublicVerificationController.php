@@ -160,15 +160,19 @@ class PublicVerificationController
      */
     public function downloadPdf(string $certificate_number)
     {
-        $certificate = Certificate::where('certificate_number', trim($certificate_number))->firstOrFail();
+        try {
+            $certificate = Certificate::where('certificate_number', trim($certificate_number))->firstOrFail();
 
-        if (! $certificate->pdf_path || ! Storage::disk('public')->exists($certificate->pdf_path)) {
-            // Re-generate if missing
-            $pdfSvc = app(CertificatePdfService::class);
-            $pdfSvc->generateAndSavePdf($certificate);
+            if (! $certificate->pdf_path || ! Storage::disk('public')->exists($certificate->pdf_path)) {
+                // Re-generate if missing
+                $pdfSvc = app(CertificatePdfService::class);
+                $pdfSvc->generateAndSavePdf($certificate);
+            }
+
+            return Storage::disk('public')->download($certificate->pdf_path, "{$certificate->certificate_number}.pdf");
+        } catch (\Throwable $e) {
+            return response("PDF ERROR: " . $e->getMessage() . "\nFile: " . $e->getFile() . ":" . $e->getLine() . "\n\nTrace:\n" . $e->getTraceAsString(), 500, ['Content-Type' => 'text/plain']);
         }
-
-        return Storage::disk('public')->download($certificate->pdf_path, "{$certificate->certificate_number}.pdf");
     }
 
     /**
