@@ -18,6 +18,7 @@ class Certificate extends Model
         'recipient_email',
         'title',
         'category',
+        'template',
         'description',
         'institution_name',
         'department',

@@ -22,9 +22,42 @@
             width: 100%;
         }
 
+@php
+    $template = $certificate->template ?? 'formal';
+    $palette = match($template) {
+        'modern' => [
+            'outer' => '#3730a3',
+            'inner' => '#0891b2',
+            'accent' => '#0284c7',
+            'title' => '#1e1b4b',
+            'header' => '#312e81',
+        ],
+        'achievement' => [
+            'outer' => '#78350f',
+            'inner' => '#d97706',
+            'accent' => '#b45309',
+            'title' => '#451a03',
+            'header' => '#78350f',
+        ],
+        'seminar' => [
+            'outer' => '#4c1d95',
+            'inner' => '#7c3aed',
+            'accent' => '#6d28d9',
+            'title' => '#2e1065',
+            'header' => '#4c1d95',
+        ],
+        default => [
+            'outer' => '#0f2b48',
+            'inner' => '#b45309',
+            'accent' => '#b45309',
+            'title' => '#0f2b48',
+            'header' => '#0f2b48',
+        ],
+    };
+@endphp
         /* Certificate outer ornate border */
         .cert-outer-border {
-            border: 3.5pt solid #0f2b48;
+            border: 3.5pt solid {{ $palette['outer'] }};
             padding: 3pt;
             background: #ffffff;
             width: 100%;
@@ -34,7 +67,7 @@
 
         /* Certificate inner gold border */
         .cert-inner-border {
-            border: 1.5pt solid #b45309;
+            border: 1.5pt solid {{ $palette['inner'] }};
             padding: 10pt 18pt 8pt 18pt;
             background: #ffffff;
             height: 100%;
@@ -47,10 +80,10 @@
             width: 20pt;
             height: 20pt;
         }
-        .corner-tl { top: 3pt; left: 3pt; border-top: 2.5pt solid #b45309; border-left: 2.5pt solid #b45309; }
-        .corner-tr { top: 3pt; right: 3pt; border-top: 2.5pt solid #b45309; border-right: 2.5pt solid #b45309; }
-        .corner-bl { bottom: 3pt; left: 3pt; border-bottom: 2.5pt solid #b45309; border-left: 2.5pt solid #b45309; }
-        .corner-br { bottom: 3pt; right: 3pt; border-bottom: 2.5pt solid #b45309; border-right: 2.5pt solid #b45309; }
+        .corner-tl { top: 3pt; left: 3pt; border-top: 2.5pt solid {{ $palette['accent'] }}; border-left: 2.5pt solid {{ $palette['accent'] }}; }
+        .corner-tr { top: 3pt; right: 3pt; border-top: 2.5pt solid {{ $palette['accent'] }}; border-right: 2.5pt solid {{ $palette['accent'] }}; }
+        .corner-bl { bottom: 3pt; left: 3pt; border-bottom: 2.5pt solid {{ $palette['accent'] }}; border-left: 2.5pt solid {{ $palette['accent'] }}; }
+        .corner-br { bottom: 3pt; right: 3pt; border-bottom: 2.5pt solid {{ $palette['accent'] }}; border-right: 2.5pt solid {{ $palette['accent'] }}; }
 
         /* Revoked Watermark Stamp */
         .watermark-revoked {

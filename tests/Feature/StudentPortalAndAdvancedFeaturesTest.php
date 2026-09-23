@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Certificate;
 use App\Models\CryptoKey;
 use App\Models\User;
+use App\Models\VerificationLog;
 use App\Services\CertificatePdfService;
 use App\Services\CryptoService;
 use App\Services\QrCodeService;
@@ -211,6 +212,44 @@ class StudentPortalAndAdvancedFeaturesTest extends TestCase
         $response->assertSee('Pilih Mahasiswa Terdaftar (Auto-Fill / Sat Set)');
         $response->assertSee('Bintang Pratama');
         $response->assertSee('12229988');
+    }
+
+    public function test_public_portfolio_displays_student_certificates_and_linkedin_button(): void
+    {
+        $student = User::factory()->create([
+            'role' => 'mahasiswa',
+            'name' => 'Amelia Test',
+            'email' => 'amelia.test@student.bsi.ac.id',
+            'identifier' => '17229999',
+        ]);
+
+        $this->createTestCertificate('CERT-2026-TEST-9999', 'Amelia Test', $student->email, $student->identifier);
+
+        $response = $this->get('/p/17229999');
+
+        $response->assertStatus(200);
+        $response->assertSee('Amelia Test');
+        $response->assertSee('CERT-2026-TEST-9999');
+        $response->assertSee('Tambah ke LinkedIn');
+    }
+
+    public function test_admin_can_view_verification_audit_logs(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        VerificationLog::create([
+            'certificate_number_queried' => 'CERT-2026-LOG-001',
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'Mozilla/5.0 PHPUnit',
+            'status' => 'valid',
+            'verified_at' => now(),
+        ]);
+
+        $response = $this->actingAs($admin)->get('/verification-logs');
+
+        $response->assertStatus(200);
+        $response->assertSee('Audit & Log Pemindaian Verifikasi');
+        $response->assertSee('CERT-2026-LOG-001');
     }
 
     protected function createTestCertificate(string $certNumber, string $name, string $email, string $identifier): Certificate

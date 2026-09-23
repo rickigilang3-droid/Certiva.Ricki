@@ -24,6 +24,7 @@
         recipient_email: '{{ old('recipient_email', '') }}',
         title: '{{ old('title', 'Sarjana Komputer (S.Kom) - Rekayasa Perangkat Lunak') }}',
         category: '{{ old('category', 'Ijazah & Sertifikat Kelulusan') }}',
+        template: '{{ old('template', 'formal') }}',
         department: '{{ old('department', 'Fakultas Teknik & Informatika') }}',
         description: '{{ old('description', 'Dengan Pujian (Cum Laude)') }}',
         institution_name: '{{ old('institution_name', 'Universitas Bina Sarana Informatika') }}',
@@ -116,6 +117,41 @@
                                     <option value="Sertifikat Kompetensi Profesi">Sertifikat Kompetensi Profesi</option>
                                     <option value="Sertifikat Pelatihan & Workshop">Sertifikat Pelatihan & Workshop</option>
                                 </select>
+                            </div>
+                        </div>
+
+                        <!-- Template Selector -->
+                        <div class="space-y-1.5">
+                            <label class="block font-semibold text-slate-800 dark:text-slate-200">Pilihan Tema & Desain Sertifikat *</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                                <label class="cursor-pointer p-3 rounded-2xl border text-center transition flex flex-col items-center gap-1.5"
+                                       :class="template === 'formal' ? 'border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-700 dark:text-cyan-300 font-bold shadow-sm ring-1 ring-indigo-500' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-700 dark:text-slate-300'">
+                                    <input type="radio" name="template" value="formal" x-model="template" class="sr-only">
+                                    <span class="w-5 h-5 rounded-full border-2 border-indigo-600 bg-amber-500 shadow-sm"></span>
+                                    <span class="text-xs">Formal Akademik</span>
+                                    <span class="text-[9px] text-slate-500 dark:text-slate-400 font-mono">Ijazah / Kelulusan</span>
+                                </label>
+                                <label class="cursor-pointer p-3 rounded-2xl border text-center transition flex flex-col items-center gap-1.5"
+                                       :class="template === 'modern' ? 'border-cyan-600 bg-cyan-50/70 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 font-bold shadow-sm ring-1 ring-cyan-500' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-700 dark:text-slate-300'">
+                                    <input type="radio" name="template" value="modern" x-model="template" class="sr-only">
+                                    <span class="w-5 h-5 rounded-full border-2 border-cyan-500 bg-indigo-500 shadow-sm"></span>
+                                    <span class="text-xs">Modern Tech</span>
+                                    <span class="text-[9px] text-slate-500 dark:text-slate-400 font-mono">Pelatihan / Kursus</span>
+                                </label>
+                                <label class="cursor-pointer p-3 rounded-2xl border text-center transition flex flex-col items-center gap-1.5"
+                                       :class="template === 'achievement' ? 'border-amber-600 bg-amber-50/70 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold shadow-sm ring-1 ring-amber-500' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-700 dark:text-slate-300'">
+                                    <input type="radio" name="template" value="achievement" x-model="template" class="sr-only">
+                                    <span class="w-5 h-5 rounded-full border-2 border-amber-500 bg-amber-600 shadow-sm"></span>
+                                    <span class="text-xs">Piagam Prestasi</span>
+                                    <span class="text-[9px] text-slate-500 dark:text-slate-400 font-mono">Juara / Lomba</span>
+                                </label>
+                                <label class="cursor-pointer p-3 rounded-2xl border text-center transition flex flex-col items-center gap-1.5"
+                                       :class="template === 'seminar' ? 'border-purple-600 bg-purple-50/70 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-bold shadow-sm ring-1 ring-purple-500' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-700 dark:text-slate-300'">
+                                    <input type="radio" name="template" value="seminar" x-model="template" class="sr-only">
+                                    <span class="w-5 h-5 rounded-full border-2 border-purple-500 bg-violet-600 shadow-sm"></span>
+                                    <span class="text-xs">Seminar Nasional</span>
+                                    <span class="text-[9px] text-slate-500 dark:text-slate-400 font-mono">Webinar / Konferensi</span>
+                                </label>
                             </div>
                         </div>
 

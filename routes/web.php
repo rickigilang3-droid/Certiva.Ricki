@@ -7,15 +7,20 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicVerificationController;
 use App\Http\Controllers\StudentPortalController;
+use App\Http\Controllers\VerificationLogController;
 use Illuminate\Support\Facades\Route;
 
-// Public Verification Portal Routes
+// Public Verification & Portfolio Routes
 Route::get('/', [PublicVerificationController::class, 'index'])->name('home');
 Route::get('/verify', [PublicVerificationController::class, 'index'])->name('verify.index');
 Route::post('/verify/pdf-upload', [PublicVerificationController::class, 'verifyPdfUpload'])->name('verify.pdf.upload');
 Route::get('/verify/{certificate_number}', [PublicVerificationController::class, 'show'])->name('verify.show');
 Route::get('/verify/{certificate_number}/download', [PublicVerificationController::class, 'downloadPdf'])->name('verify.download');
 Route::get('/verify/{certificate_number}/proof', [PublicVerificationController::class, 'rawProof'])->name('verify.proof');
+
+// Public Student Credential Portfolio
+Route::get('/p/{identifier}', [StudentPortalController::class, 'publicPortfolio'])->name('student.portfolio');
+Route::get('/portfolio/{identifier}', [StudentPortalController::class, 'publicPortfolio']);
 
 // Authenticated Routes (Mahasiswa & Admin)
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -52,6 +57,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/crypto-keys', [CryptoKeyController::class, 'index'])->name('crypto-keys.index');
         Route::post('/crypto-keys/rotate', [CryptoKeyController::class, 'rotate'])->name('crypto-keys.rotate');
         Route::get('/crypto-keys/{cryptoKey}/download-public', [CryptoKeyController::class, 'downloadPublic'])->name('crypto-keys.download-public');
+
+        // Verification Audit Logs
+        Route::get('/verification-logs', [VerificationLogController::class, 'index'])->name('verification-logs.index');
     });
 });
 

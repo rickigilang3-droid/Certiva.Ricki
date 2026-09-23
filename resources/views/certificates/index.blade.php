@@ -98,7 +98,12 @@
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="font-semibold text-slate-800 dark:text-slate-200">{{ $cert->title }}</div>
-                                        <div class="text-slate-600 dark:text-slate-300 text-[11px]">{{ $cert->department ?? $cert->institution_name }}</div>
+                                        <div class="flex items-center gap-1.5 mt-0.5">
+                                            <span class="text-slate-600 dark:text-slate-300 text-[11px]">{{ $cert->department ?? $cert->institution_name }}</span>
+                                            <span class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold uppercase bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600">
+                                                {{ $cert->template ?? 'formal' }}
+                                            </span>
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 text-slate-700 dark:text-slate-300 font-medium">
                                         {{ \Carbon\Carbon::parse($cert->issued_date)->translatedFormat('d M Y') }}

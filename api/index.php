@@ -50,6 +50,8 @@ if ($uri !== '/' && file_exists($publicFile) && is_file($publicFile)) {
 // Prepare writable serverless storage folders in /tmp
 $storageDirs = [
     '/tmp/storage/app/public',
+    '/tmp/storage/app/public/certificates',
+    '/tmp/storage/fonts',
     '/tmp/storage/framework/cache/data',
     '/tmp/storage/framework/sessions',
     '/tmp/storage/framework/views',

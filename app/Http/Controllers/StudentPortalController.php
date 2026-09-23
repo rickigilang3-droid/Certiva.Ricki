@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Certificate;
+use App\Models\User;
 use App\Services\CertificatePdfService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -106,5 +107,53 @@ class StudentPortalController extends Controller
         $this->authorizeAccess($request, $certificate);
 
         return $this->pdfService->streamPdf($certificate);
+    }
+
+    /**
+     * Display public verified student portfolio / SKPI.
+     */
+    public function publicPortfolio(Request $request, string $identifier)
+    {
+        $identifier = trim($identifier);
+
+        $student = User::where('identifier', $identifier)
+            ->orWhere('email', $identifier)
+            ->orWhere(function ($q) use ($identifier) {
+                if (is_numeric($identifier)) {
+                    $q->where('id', (int) $identifier);
+                }
+            })
+            ->first();
+
+        $certificates = Certificate::with('cryptoKey')
+            ->where(function ($q) use ($identifier, $student) {
+                $q->where('recipient_identifier', $identifier)
+                    ->orWhere('recipient_email', $identifier);
+                if ($student) {
+                    $q->orWhere('recipient_email', $student->email);
+                    if ($student->identifier) {
+                        $q->orWhere('recipient_identifier', $student->identifier);
+                    }
+                }
+            })
+            ->where('status', 'active')
+            ->latest('issued_date')
+            ->get();
+
+        if (! $student && $certificates->isEmpty()) {
+            abort(404, 'Portofolio kredensial mahasiswa tidak ditemukan.');
+        }
+
+        $studentName = $student?->name ?? ($certificates->first()?->recipient_name ?? 'Mahasiswa');
+        $studentNim = $student?->identifier ?? ($certificates->first()?->recipient_identifier ?? $identifier);
+        $studentEmail = $student?->email ?? ($certificates->first()?->recipient_email ?? null);
+
+        return view('public.portfolio', [
+            'student' => $student,
+            'studentName' => $studentName,
+            'studentNim' => $studentNim,
+            'studentEmail' => $studentEmail,
+            'certificates' => $certificates,
+        ]);
     }
 }
