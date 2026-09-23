@@ -62,11 +62,12 @@ if (! getenv('DB_HOST') && ! getenv('DATABASE_URL')) {
 }
 
 // Fallback encryption key if not provided in Vercel dashboard
-if (! getenv('APP_KEY') && ! isset($_ENV['APP_KEY'])) {
-    $defaultKey = 'base64:+Vp7JaY4goZkPGrdAXd6E/kii7q9uMcIlZyvFwdwC2c=';
-    putenv("APP_KEY={$defaultKey}");
-    $_ENV['APP_KEY'] = $defaultKey;
+$appKey = getenv('APP_KEY') ?: ($_ENV['APP_KEY'] ?? null);
+if (! $appKey || trim($appKey) === '') {
+    $appKey = 'base64:+Vp7JaY4goZkPGrdAXd6E/kii7q9uMcIlZyvFwdwC2c=';
 }
+putenv("APP_KEY={$appKey}");
+$_ENV['APP_KEY'] = $appKey;
 
 if (! getenv('APP_DEBUG') && ! isset($_ENV['APP_DEBUG'])) {
     putenv('APP_DEBUG=true');
