@@ -28,6 +28,7 @@
     "CACHE_STORE": "array",
     "SESSION_DRIVER": "cookie",
     "SESSION_LIFETIME": "120",
+    "BCRYPT_ROUNDS": "12",
     "LOG_CHANNEL": "stderr",
     "VIEW_COMPILED_PATH": "/tmp/storage/framework/views"
   }

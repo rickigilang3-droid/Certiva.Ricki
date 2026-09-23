@@ -158,7 +158,7 @@
                     <!-- Link to Login -->
                     <a href="{{ route('login') }}" class="text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:scale-105 active:scale-95 flex items-center gap-1.5 transition-all duration-200 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
-                        <span>Masuk</span>
+                        <span>Login</span>
                     </a>
 
                     <!-- Portal Verifikasi -->
@@ -335,7 +335,7 @@
                             <p class="text-xs text-slate-600 dark:text-slate-400">
                                 Sudah memiliki akun?
                                 <a href="{{ route('login') }}" class="group inline-flex items-center gap-1 font-bold text-indigo-600 dark:text-cyan-400 hover:text-indigo-700 dark:hover:text-cyan-300 hover:underline transition-all duration-200 ml-1">
-                                    <span>Masuk ke Portal</span>
+                                    <span>Login</span>
                                     <svg class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                 </a>
                             </p>

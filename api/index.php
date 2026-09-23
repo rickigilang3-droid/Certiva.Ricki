@@ -122,6 +122,11 @@ if (! getenv('SESSION_LIFETIME') || getenv('SESSION_LIFETIME') === '') {
     $_ENV['SESSION_LIFETIME'] = '120';
 }
 
+if (! getenv('BCRYPT_ROUNDS') || getenv('BCRYPT_ROUNDS') === '') {
+    putenv('BCRYPT_ROUNDS=12');
+    $_ENV['BCRYPT_ROUNDS'] = '12';
+}
+
 if (! getenv('CACHE_STORE') && ! isset($_ENV['CACHE_STORE'])) {
     putenv('CACHE_STORE=array');
     $_ENV['CACHE_STORE'] = 'array';

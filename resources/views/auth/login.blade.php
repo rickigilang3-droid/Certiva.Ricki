@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Masuk Akun Admin - Certiva</title>
+    <title>Login - Certiva</title>
 
     <!-- Inline Theme Script (instant theme detection) -->
     <script>
@@ -173,10 +173,10 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
                         </div>
                         <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                            Masuk Akun Admin
+                            Login
                         </h2>
                         <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-                            Akses dewan akademik, rektorat, dan staf administrator penerbit ijazah.
+                            Akses dewan akademik, rektorat, staf administrator, dan mahasiswa.
                         </p>
                     </div>
 
@@ -262,14 +262,14 @@
                         <!-- Submit Button -->
                         <button type="submit" class="group relative overflow-hidden w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/40 hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer">
                             <div class="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"></div>
-                            <span>Masuk ke Dashboard Admin</span>
+                            <span>Login</span>
                             <svg class="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                         </button>
 
                         <!-- Register Link -->
                         <div class="pt-4 border-t border-slate-200 dark:border-slate-800 text-center">
                             <p class="text-xs text-slate-600 dark:text-slate-400">
-                                Belum memiliki akun admin?
+                                Belum memiliki akun?
                                 <a href="{{ route('register') }}" class="group inline-flex items-center gap-1 font-bold text-indigo-600 dark:text-cyan-400 hover:text-indigo-700 dark:hover:text-cyan-300 hover:underline transition-all duration-200 ml-1">
                                     <span>Daftar Akun Baru</span>
                                     <svg class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>

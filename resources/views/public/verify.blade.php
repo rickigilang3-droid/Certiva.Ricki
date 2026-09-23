@@ -140,7 +140,7 @@
                     </a>
                 @else
                     <a href="{{ route('login') }}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700 shadow-sm transition">
-                        <span>Masuk Kampus / Penerbit</span>
+                        <span>Login</span>
                     </a>
                 @endauth
             </div>
