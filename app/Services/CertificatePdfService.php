@@ -35,18 +35,35 @@ class CertificatePdfService
     }
 
     /**
-     * Get optimized base64 logo.
+     * Get optimized base64 logo and its mime type.
+     * Prefers JPEG as DomPDF embeds JPEG natively without requiring PHP GD extension.
+     *
+     * @return array{mime: string, base64: string}|null
      */
-    protected function getLogoBase64(): ?string
+    protected function getLogoData(): ?array
     {
+        $jpgLogo = public_path('images/logo_pdf.jpg');
+        if (file_exists($jpgLogo)) {
+            return [
+                'mime' => 'image/jpeg',
+                'base64' => base64_encode(file_get_contents($jpgLogo)),
+            ];
+        }
+
         $pdfLogo = public_path('images/logo_pdf.png');
         if (file_exists($pdfLogo)) {
-            return base64_encode(file_get_contents($pdfLogo));
+            return [
+                'mime' => 'image/png',
+                'base64' => base64_encode(file_get_contents($pdfLogo)),
+            ];
         }
 
         $origLogo = public_path('images/logo.png');
         if (file_exists($origLogo)) {
-            return base64_encode(file_get_contents($origLogo));
+            return [
+                'mime' => 'image/png',
+                'base64' => base64_encode(file_get_contents($origLogo)),
+            ];
         }
 
         return null;
@@ -61,13 +78,13 @@ class CertificatePdfService
 
         $qrSvg = $this->qrService->generateSvg($certificate->certificate_number);
         $qrBase64 = base64_encode($qrSvg);
-        $logoBase64 = $this->getLogoBase64();
+        $logoData = $this->getLogoData();
 
         $pdf = Pdf::loadView('certificates.pdf', [
             'certificate' => $certificate,
             'cryptoKey' => $certificate->cryptoKey,
             'qrBase64' => $qrBase64,
-            'logoBase64' => $logoBase64,
+            'logoData' => $logoData,
             'verificationUrl' => url('/verify/'.$certificate->certificate_number),
         ])->setPaper('a4', 'landscape')
             ->setOption('isRemoteEnabled', false)
@@ -91,13 +108,13 @@ class CertificatePdfService
 
         $qrSvg = $this->qrService->generateSvg($certificate->certificate_number);
         $qrBase64 = base64_encode($qrSvg);
-        $logoBase64 = $this->getLogoBase64();
+        $logoData = $this->getLogoData();
 
         $pdf = Pdf::loadView('certificates.pdf', [
             'certificate' => $certificate,
             'cryptoKey' => $certificate->cryptoKey,
             'qrBase64' => $qrBase64,
-            'logoBase64' => $logoBase64,
+            'logoData' => $logoData,
             'verificationUrl' => url('/verify/'.$certificate->certificate_number),
         ])->setPaper('a4', 'landscape')
             ->setOption('isRemoteEnabled', false)

@@ -78,7 +78,12 @@ return [
          * direct class use like:
          * $dompdf = new DOMPDF();  $dompdf->load_html($htmldata); $dompdf->render(); $pdfdata = $dompdf->output();
          */
-        'chroot' => realpath(base_path()),
+        'chroot' => array_values(array_filter([
+            realpath(base_path()) ?: base_path(),
+            storage_path(),
+            sys_get_temp_dir(),
+            '/tmp',
+        ])),
 
         /**
          * Protocol whitelist

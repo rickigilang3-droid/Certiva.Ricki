@@ -407,7 +407,9 @@
             <table class="header-table">
                 <tr>
                     <td class="logo-cell">
-                        @if(!empty($logoBase64))
+                        @if(!empty($logoData))
+                            <img src="data:{{ $logoData['mime'] }};base64,{{ $logoData['base64'] }}" class="logo-img" alt="Logo" />
+                        @elseif(!empty($logoBase64))
                             <img src="data:image/png;base64,{{ $logoBase64 }}" class="logo-img" alt="Logo" />
                         @endif
                     </td>
