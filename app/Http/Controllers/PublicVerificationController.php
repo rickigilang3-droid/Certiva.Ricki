@@ -613,33 +613,43 @@ class PublicVerificationController
             $tamperedReasons[] = 'Program studi / judul sertifikat pada dokumen tidak sesuai dengan arsip sah universitas.';
         }
 
-        // 4. Cryptographic RSA-2048 & SHA-256 validation of claimed document payload
-        $claimedAttributes = [
-            'certificate_number' => $certificate->certificate_number,
-            'recipient_name' => $detectedName,
-            'recipient_identifier' => $detectedIdentifier,
-            'title' => $certificate->title,
-            'institution_name' => $certificate->institution_name,
-            'department' => $certificate->department ?? '',
-            'issued_date' => $certificate->issued_date instanceof \DateTimeInterface
-                ? $certificate->issued_date->format('Y-m-d')
-                : (string) $certificate->issued_date,
-            'expiry_date' => $certificate->expiry_date instanceof \DateTimeInterface
-                ? $certificate->expiry_date->format('Y-m-d')
-                : (! empty($certificate->expiry_date) ? (string) $certificate->expiry_date : null),
-            'signatory_name' => $certificate->signatory_name,
-            'signatory_title' => $certificate->signatory_title,
-        ];
+        // 4. Cryptographic RSA-2048 & SHA-256 validation
+        // When all text attributes match the DB, verify the certificate's own stored integrity
+        // directly — this is the most reliable path for authentic documents.
+        // Only rebuild a "claimed" payload when some attribute differs (tampered scenario).
+        if ($nameMatch && $identifierMatch && $titleMatch) {
+            $integrity = $this->cryptoService->verifyCertificateIntegrity($certificate);
+            $isDocSignatureValid = $integrity['isSignatureValid'];
+            $isDocHashValid = $integrity['isHashMatch'];
+            $claimedHash = $integrity['recomputedHash'];
+        } else {
+            $claimedAttributes = [
+                'certificate_number' => $certificate->certificate_number,
+                'recipient_name' => $detectedName,
+                'recipient_identifier' => $detectedIdentifier,
+                'title' => $certificate->title,
+                'institution_name' => $certificate->institution_name,
+                'department' => $certificate->department ?? '',
+                'issued_date' => $certificate->issued_date instanceof \DateTimeInterface
+                    ? $certificate->issued_date->format('Y-m-d')
+                    : (string) $certificate->issued_date,
+                'expiry_date' => $certificate->expiry_date instanceof \DateTimeInterface
+                    ? $certificate->expiry_date->format('Y-m-d')
+                    : (! empty($certificate->expiry_date) ? (string) $certificate->expiry_date : null),
+                'signatory_name' => $certificate->signatory_name,
+                'signatory_title' => $certificate->signatory_title,
+            ];
 
-        $claimedPayload = $this->cryptoService->buildCanonicalPayload($claimedAttributes);
-        $claimedHash = $this->cryptoService->calculateSha256($claimedPayload);
+            $claimedPayload = $this->cryptoService->buildCanonicalPayload($claimedAttributes);
+            $claimedHash = $this->cryptoService->calculateSha256($claimedPayload);
 
-        $isDocSignatureValid = $this->cryptoService->verifySignature(
-            $claimedPayload,
-            $certificate->signature_rsapss,
-            $certificate->cryptoKey->public_key
-        );
-        $isDocHashValid = hash_equals($certificate->hash_sha256, $claimedHash);
+            $isDocSignatureValid = $this->cryptoService->verifySignature(
+                $claimedPayload,
+                $certificate->signature_rsapss,
+                $certificate->cryptoKey->public_key
+            );
+            $isDocHashValid = hash_equals($certificate->hash_sha256, $claimedHash);
+        }
 
         $isTampered = (! $nameMatch || ! $identifierMatch || ! $titleMatch || ! $isDocSignatureValid || ! $isDocHashValid);
 
