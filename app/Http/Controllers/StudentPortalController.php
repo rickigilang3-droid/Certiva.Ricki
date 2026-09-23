@@ -97,7 +97,10 @@ class StudentPortalController extends Controller
         }
 
         if ($certificate->pdf_path && Storage::disk('public')->exists($certificate->pdf_path)) {
-            return Storage::disk('public')->download($certificate->pdf_path, "{$certificate->certificate_number}.pdf");
+            return response()->download(
+                Storage::disk('public')->path($certificate->pdf_path),
+                "{$certificate->certificate_number}.pdf"
+            );
         }
 
         return $this->pdfService->streamPdf($certificate);

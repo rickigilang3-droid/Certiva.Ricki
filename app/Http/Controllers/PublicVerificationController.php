@@ -6,6 +6,7 @@ use App\Models\Certificate;
 use App\Models\VerificationLog;
 use App\Services\CertificatePdfService;
 use App\Services\CryptoService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -324,7 +325,10 @@ class PublicVerificationController
         }
 
         if ($certificate->pdf_path && Storage::disk('public')->exists($certificate->pdf_path)) {
-            return Storage::disk('public')->download($certificate->pdf_path, "{$certificate->certificate_number}.pdf");
+            return response()->download(
+                Storage::disk('public')->path($certificate->pdf_path),
+                "{$certificate->certificate_number}.pdf"
+            );
         }
 
         return $pdfSvc->streamPdf($certificate);
@@ -336,6 +340,8 @@ class PublicVerificationController
     public function rawProof(string $certificate_number)
     {
         $certificate = Certificate::with('cryptoKey')->where('certificate_number', trim($certificate_number))->firstOrFail();
+        /** @var Carbon $issuedDate */
+        $issuedDate = $certificate->issued_date;
 
         return response()->json([
             'certificate_number' => $certificate->certificate_number,
@@ -347,7 +353,7 @@ class PublicVerificationController
                 'title' => $certificate->title,
                 'institution' => $certificate->institution_name,
                 'department' => $certificate->department,
-                'issued_date' => $certificate->issued_date->format('Y-m-d'),
+                'issued_date' => $issuedDate->format('Y-m-d'),
             ],
             'status' => $certificate->status,
             'cryptography' => [
