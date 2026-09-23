@@ -2,18 +2,22 @@
   "version": 2,
   "framework": null,
   "buildCommand": "npm run build",
-  "outputDirectory": "public",
   "functions": {
     "api/index.php": {
       "runtime": "vercel-php@0.7.4",
       "memory": 1024,
-      "maxDuration": 30
+      "maxDuration": 30,
+      "includeFiles": "database/**"
     }
   },
   "routes": [
     {
       "src": "/build/(.*)",
       "dest": "/public/build/$1"
+    },
+    {
+      "src": "/images/(.*)",
+      "dest": "/public/images/$1"
     },
     {
       "src": "/favicon.ico",
@@ -30,15 +34,10 @@
   ],
   "env": {
     "APP_ENV": "production",
-    "APP_DEBUG": "false",
+    "APP_DEBUG": "true",
     "CACHE_STORE": "array",
     "SESSION_DRIVER": "cookie",
     "LOG_CHANNEL": "stderr",
-    "VIEW_COMPILED_PATH": "/tmp/storage/framework/views",
-    "APP_CONFIG_CACHE": "/tmp/storage/framework/cache/config.php",
-    "APP_EVENTS_CACHE": "/tmp/storage/framework/cache/events.php",
-    "APP_PACKAGES_CACHE": "/tmp/storage/framework/cache/packages.php",
-    "APP_ROUTES_CACHE": "/tmp/storage/framework/cache/routes.php"
+    "VIEW_COMPILED_PATH": "/tmp/storage/framework/views"
   }
 }
-
