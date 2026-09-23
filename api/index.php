@@ -14,6 +14,32 @@ register_shutdown_function(function () {
     }
 });
 
+// Direct static file delivery for public assets (Vite CSS, JS, images, icons)
+$uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+$publicFile = __DIR__.'/../public'.$uri;
+if ($uri !== '/' && file_exists($publicFile) && is_file($publicFile)) {
+    $ext = pathinfo($publicFile, PATHINFO_EXTENSION);
+    $mimes = [
+        'css' => 'text/css; charset=utf-8',
+        'js' => 'application/javascript; charset=utf-8',
+        'png' => 'image/png',
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'svg' => 'image/svg+xml',
+        'ico' => 'image/x-icon',
+        'json' => 'application/json; charset=utf-8',
+        'woff2' => 'font/woff2',
+        'woff' => 'font/woff',
+        'ttf' => 'font/ttf',
+    ];
+    $contentType = $mimes[$ext] ?? 'application/octet-stream';
+    header("Content-Type: {$contentType}");
+    header('Cache-Control: public, max-age=31536000, immutable');
+    header('Content-Length: '.filesize($publicFile));
+    readfile($publicFile);
+    exit;
+}
+
 // Prepare writable serverless storage folders in /tmp
 $storageDirs = [
     '/tmp/storage/app/public',

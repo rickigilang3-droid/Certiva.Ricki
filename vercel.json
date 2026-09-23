@@ -12,24 +12,16 @@
   },
   "routes": [
     {
-      "src": "/build/(.*)",
-      "dest": "/public/build/$1"
+      "src": "/(build|images)/(.*)",
+      "dest": "public/$1/$2"
     },
     {
-      "src": "/images/(.*)",
-      "dest": "/public/images/$1"
-    },
-    {
-      "src": "/favicon.ico",
-      "dest": "/public/favicon.ico"
-    },
-    {
-      "src": "/robots.txt",
-      "dest": "/public/robots.txt"
+      "src": "/(favicon\\.ico|robots\\.txt)",
+      "dest": "public/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/api/index.php"
+      "dest": "api/index.php"
     }
   ],
   "env": {
