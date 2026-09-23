@@ -19,7 +19,7 @@
   "env": {
     "APP_ENV": "production",
     "APP_NAME": "Certiva",
-    "APP_DEBUG": "false",
+    "APP_DEBUG": "true",
     "APP_KEY": "base64:+Vp7JaY4goZkPGrdAXd6E/kii7q9uMcIlZyvFwdwC2c=",
     "APP_MAINTENANCE_DRIVER": "file",
     "APP_STORAGE": "/tmp/storage",
