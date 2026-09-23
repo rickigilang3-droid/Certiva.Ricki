@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <title>Daftar Akun Pengguna - Certiva</title>
+
+    <!-- Inline Theme Script (instant theme detection) -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('certiva_theme');
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
+
+    <!-- Scripts and Styles -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="h-full font-sans antialiased text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-[#0B0F19] transition-colors duration-200 selection:bg-indigo-500 selection:text-white" 
+      x-data="{ 
+          role: '{{ old('role', 'mahasiswa') }}',
+          name: '{{ old('name', '') }}',
+          identifier: '{{ old('identifier', '') }}',
+          email: '{{ old('email', '') }}', 
+          password: '', 
+          password_confirmation: '',
+          showPassword: false,
+          showConfirmPassword: false
+      }">
+
+    <!-- Ambient Glowing Orbs in Background (Animated) -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div class="absolute -top-32 -left-32 w-[600px] h-[600px] bg-indigo-500/10 dark:bg-indigo-600/20 rounded-full blur-[140px] animate-float-slow"></div>
+        <div class="absolute top-1/2 -right-32 w-[550px] h-[550px] bg-cyan-500/10 dark:bg-cyan-600/15 rounded-full blur-[140px] animate-float-reverse"></div>
+        <div class="absolute -bottom-32 left-1/3 w-[500px] h-[500px] bg-blue-500/10 dark:bg-blue-600/15 rounded-full blur-[140px] animate-float"></div>
+    </div>
+
+    <div class="min-h-full relative z-10 flex flex-col lg:flex-row">
+        
+        <!-- Left Column: Branding, Context & Cryptographic Security (Desktop only) -->
+        <div class="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-indigo-50/70 via-slate-100/90 to-blue-50/70 dark:from-slate-950 dark:via-[#0E1528] dark:to-[#090D18] p-12 xl:p-16 flex-col justify-between border-r border-slate-200 dark:border-slate-800/80 text-slate-900 dark:text-white transition-colors duration-200">
+            
+            <!-- Top Brand -->
+            <div>
+                <a href="{{ route('home') }}" class="inline-flex items-center gap-3.5 group">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white p-1.5 flex items-center justify-center shadow-md border border-slate-200 dark:border-slate-700/80 group-hover:scale-110 group-hover:rotate-1 group-hover:shadow-indigo-500/20 transition-all duration-300 shrink-0">
+                        <img src="{{ asset('images/logo.png') }}" alt="Certiva Logo" class="w-full h-full object-contain">
+                    </div>
+                    <div>
+                        <div class="font-extrabold text-2xl tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                            <span>Certiva</span>
+                            <span class="text-xs px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 font-mono border border-indigo-200 dark:border-indigo-500/30 font-bold animate-pulse-glow hover:scale-105 transition-transform">RSA-PSS</span>
+                        </div>
+                        <p class="text-xs text-slate-800 dark:text-slate-100 font-bold mt-0.5">Universitas Bina Sarana Informatika</p>
+                        <p class="text-[11px] text-slate-600 dark:text-slate-300 font-medium">Cryptographic Certificate Authority</p>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Middle Value Proposition -->
+            <div class="space-y-8 my-auto py-8 max-w-lg">
+                <div class="space-y-3">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 text-xs font-semibold border border-indigo-500/20 dark:border-indigo-500/25 shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-indigo-500 dark:bg-indigo-400 animate-pulse"></span>
+                        <span>Registrasi Akun Administrator Kampus</span>
+                    </div>
+                    <h1 class="text-3xl xl:text-4xl font-extrabold leading-tight text-slate-900 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-white dark:via-slate-100 dark:to-slate-300">
+                        Bergabung dengan Tim Otoritas Penerbit Ijazah
+                    </h1>
+                    <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                        Daftarkan akun resmi Anda untuk mengelola pangkalan data sertifikat, menerbitkan dokumen kelulusan bertanda tangan digital RSA-PSS, serta memantau audit keaslian dokumen secara real-time.
+                    </p>
+                </div>
+
+                <!-- 2 Feature Highlight Cards -->
+                <div class="space-y-3.5">
+                    <div class="group flex items-start gap-4 p-4 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 backdrop-blur hover:border-indigo-400 dark:hover:border-indigo-500/50 hover:bg-white dark:hover:bg-slate-900 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-200 dark:border-indigo-500/40 text-indigo-600 dark:text-indigo-300 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/30 transition-all duration-300">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        </div>
+                        <div class="space-y-0.5">
+                            <div class="font-bold text-sm text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors">Otoritas Penandatanganan Kriptografis</div>
+                            <div class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Penerbitan ijazah langsung disegel dengan hash SHA-256 dan kunci privat RSA-2048 berstandar RFC 8017.</div>
+                        </div>
+                    </div>
+
+                    <div class="group flex items-start gap-4 p-4 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 backdrop-blur hover:border-cyan-400 dark:hover:border-cyan-500/50 hover:bg-white dark:hover:bg-slate-900 hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+                        <div class="w-10 h-10 rounded-xl bg-cyan-50 dark:bg-cyan-500/20 border border-cyan-200 dark:border-cyan-500/40 text-cyan-600 dark:text-cyan-300 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-cyan-100 dark:group-hover:bg-cyan-500/30 transition-all duration-300">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                        </div>
+                        <div class="space-y-0.5">
+                            <div class="font-bold text-sm text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-300 transition-colors">Audit Trail & Manajemen Arsip</div>
+                            <div class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Setiap aktivitas penerbitan, pencabutan sertifikat, dan rotasi kunci tercatat rapi dalam audit log resmi.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Cryptographic Security Badge -->
+            <div class="pt-6 border-t border-slate-200 dark:border-slate-800">
+                <div class="p-4 rounded-2xl bg-white/95 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 font-mono flex flex-wrap items-center justify-between gap-3 shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <span>Algorithm: <strong class="text-slate-900 dark:text-white">RSA-2048</strong></span>
+                        <span>&bull;</span>
+                        <span>Hash: <strong class="text-slate-900 dark:text-white">SHA-256</strong></span>
+                        <span>&bull;</span>
+                        <span>Scheme: <strong class="text-indigo-600 dark:text-cyan-300 font-bold">RSA-PSS</strong></span>
+                    </div>
+                    <div class="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-slate-600 dark:text-slate-300 font-medium">Pejabat Otoritas:</span>
+                        <span class="text-slate-900 dark:text-white font-extrabold font-sans">Ricki Gilang Saputra</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Registration Form Container (Supports Light and Dark Mode) -->
+        <div class="w-full lg:w-1/2 flex flex-col justify-between p-6 sm:p-12 lg:p-16 bg-slate-50 dark:bg-[#0B0F19] transition-colors duration-200 overflow-y-auto">
+            
+            <!-- Top Navigation & Theme Toggle -->
+            <div class="flex items-center justify-between animate-fade-in-down">
+                <!-- Mobile Logo -->
+                <a href="{{ route('home') }}" class="lg:hidden flex items-center gap-3 group">
+                    <div class="w-10 h-10 sm:w-11 sm:h-11 bg-white p-1 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 shrink-0 flex items-center justify-center group-hover:scale-105 group-hover:rotate-1 transition-all duration-300">
+                        <img src="{{ asset('images/logo.png') }}" alt="Certiva Logo" class="w-full h-full object-contain">
+                    </div>
+                    <div>
+                        <div class="font-extrabold text-base text-slate-900 dark:text-white">Certiva</div>
+                        <div class="text-[11px] text-slate-700 dark:text-slate-300 font-semibold">Universitas Bina Sarana Informatika</div>
+                    </div>
+                </a>
+
+                <div class="flex items-center gap-2.5 sm:gap-3 ml-auto">
+                    <!-- Theme Switcher Button -->
+                    <button type="button" @click="$store.theme.toggle()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:scale-105 active:scale-95 shadow-sm transition-all duration-200">
+                        <!-- Sun Icon when dark -->
+                        <svg x-show="$store.theme.isDark" x-cloak class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <!-- Moon Icon when light -->
+                        <svg x-show="!$store.theme.isDark" class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                        <span x-text="$store.theme.isDark ? 'Mode Terang' : 'Mode Gelap'"></span>
+                    </button>
+
+                    <!-- Link to Login -->
+                    <a href="{{ route('login') }}" class="text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:scale-105 active:scale-95 flex items-center gap-1.5 transition-all duration-200 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                        <span>Masuk</span>
+                    </a>
+
+                    <!-- Portal Verifikasi -->
+                    <a href="{{ route('verify.index') }}" class="hidden sm:flex text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:scale-105 active:scale-95 items-center gap-1.5 transition-all duration-200 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-transparent hover:bg-white dark:hover:bg-slate-800/50">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                        <span>Portal Verifikasi</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Registration Card -->
+            <div class="max-w-md w-full mx-auto my-auto py-6 sm:py-8 animate-fade-in-up">
+                <div class="bg-white dark:bg-slate-900/85 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 rounded-3xl p-7 sm:p-9 shadow-xl hover:shadow-2xl dark:shadow-black/50 dark:hover:shadow-indigo-950/30 hover:border-indigo-300 dark:hover:border-indigo-500/30 hover:-translate-y-0.5 transition-all duration-500 space-y-6">
+                    
+                    <!-- Header -->
+                    <div class="space-y-1 text-center sm:text-left">
+                        <div class="inline-block p-2.5 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 mb-2 transition-all duration-300 hover:scale-110 hover:rotate-6 hover:shadow-md cursor-default">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                        </div>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                            Daftar Akun
+                        </h2>
+                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+                            Pilih jenis akun untuk mahasiswa atau dewan administrator kampus.
+                        </p>
+                    </div>
+
+                    <!-- Role Notice Box -->
+                    <div class="p-3.5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-500/30 text-xs text-indigo-900 dark:text-indigo-200 flex items-start gap-2.5">
+                        <svg class="w-4 h-4 shrink-0 mt-0.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span class="leading-relaxed" x-text="role === 'mahasiswa' ? 'Akun Mahasiswa memungkinkan Anda melihat, mengunduh, dan mencetak sertifikat akademik resmi Anda secara mandiri.' : 'Akun Administrator memiliki kewenangan menerbitkan ijazah, memegang kunci privat, dan mengelola arsip digital.'"></span>
+                    </div>
+
+                    <!-- Errors Alert -->
+                    @if ($errors->any())
+                        <div class="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-800 dark:text-rose-400 text-xs space-y-1 animate-fade-in-down">
+                            <div class="font-bold flex items-center gap-1.5">
+                                <svg class="w-4 h-4 shrink-0 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                <span>Pendaftaran tidak dapat diproses:</span>
+                            </div>
+                            <ul class="list-disc list-inside">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <!-- Registration Form -->
+                    <form method="POST" action="{{ route('register') }}" class="space-y-4">
+                        @csrf
+
+                        <!-- Role Selector -->
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                Jenis Akun Pengguna
+                            </label>
+                            <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-950/80 rounded-2xl border border-slate-200 dark:border-slate-800">
+                                <button type="button" 
+                                        @click="role = 'mahasiswa'" 
+                                        :class="role === 'mahasiswa' ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/80 dark:border-slate-700' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                                        class="py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+                                    <span>Mahasiswa</span>
+                                </button>
+                                <button type="button" 
+                                        @click="role = 'admin'" 
+                                        :class="role === 'admin' ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/80 dark:border-slate-700' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                                        class="py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                    <span>Administrator</span>
+                                </button>
+                            </div>
+                            <input type="hidden" name="role" :value="role">
+                        </div>
+
+                        <!-- NIM Input (Only for Mahasiswa) -->
+                        <div x-show="role === 'mahasiswa'" x-transition class="space-y-1.5">
+                            <label for="identifier" class="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                Nomor Induk Mahasiswa (NIM) <span class="text-rose-500">*</span>
+                            </label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 group-focus-within:scale-110 transition-all duration-200">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/></svg>
+                                </div>
+                                <input id="identifier" type="text" name="identifier" x-model="identifier" :required="role === 'mahasiswa'"
+                                       placeholder="misal: 12220199 atau 19200123"
+                                       class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950/60 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs font-medium focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 focus:-translate-y-0.5 focus:shadow-md transition-all duration-200 font-mono" />
+                            </div>
+                            <p class="text-[11px] text-slate-600 dark:text-slate-400">Sertifikat Anda akan otomatis terhubung melalui kecocokan NIM atau email terdaftar.</p>
+                        </div>
+
+                        <!-- Name Input -->
+                        <div class="space-y-1.5">
+                            <label for="name" class="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                <span x-text="role === 'mahasiswa' ? 'Nama Lengkap Mahasiswa' : 'Nama Lengkap & Gelar Pejabat'"></span>
+                            </label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 group-focus-within:scale-110 transition-all duration-200">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                </div>
+                                <input id="name" type="text" name="name" x-model="name" required autofocus autocomplete="name"
+                                       :placeholder="role === 'mahasiswa' ? 'misal: Siti Nurhaliza' : 'misal: Dr. Ricki Gilang Saputra, M.Kom.'"
+                                       class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950/60 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs font-medium focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 focus:-translate-y-0.5 focus:shadow-md transition-all duration-200" />
+                            </div>
+                        </div>
+
+                        <!-- Email Input -->
+                        <div class="space-y-1.5">
+                            <label for="email" class="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                Alamat Email Resmi
+                            </label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 group-focus-within:scale-110 transition-all duration-200">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206"/></svg>
+                                </div>
+                                <input id="email" type="email" name="email" x-model="email" required autocomplete="username"
+                                       placeholder="nama@bsi.ac.id atau nama@certiva.local"
+                                       class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950/60 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs font-medium focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 focus:-translate-y-0.5 focus:shadow-md transition-all duration-200" />
+                            </div>
+                        </div>
+
+                        <!-- Password Input -->
+                        <div class="space-y-1.5">
+                            <label for="password" class="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                Kata Sandi
+                            </label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 group-focus-within:scale-110 transition-all duration-200">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                </div>
+                                <input id="password" :type="showPassword ? 'text' : 'password'" name="password" x-model="password" required autocomplete="new-password"
+                                       placeholder="Minimal 8 karakter"
+                                       class="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950/60 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 focus:-translate-y-0.5 focus:shadow-md transition-all duration-200 font-mono" />
+                                
+                                <!-- Toggle Password Visibility -->
+                                <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:scale-110 active:scale-95 transition-all duration-150">
+                                    <svg class="w-4 h-4" x-show="!showPassword" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    <svg class="w-4 h-4" x-show="showPassword" x-cloak fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Confirm Password Input -->
+                        <div class="space-y-1.5">
+                            <label for="password_confirmation" class="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                Ulangi Kata Sandi
+                            </label>
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 group-focus-within:scale-110 transition-all duration-200">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                </div>
+                                <input id="password_confirmation" :type="showConfirmPassword ? 'text' : 'password'" name="password_confirmation" x-model="password_confirmation" required autocomplete="new-password"
+                                       placeholder="Ketik ulang kata sandi"
+                                       class="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950/60 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 focus:-translate-y-0.5 focus:shadow-md transition-all duration-200 font-mono" />
+                                
+                                <!-- Toggle Confirm Password Visibility -->
+                                <button type="button" @click="showConfirmPassword = !showConfirmPassword" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:scale-110 active:scale-95 transition-all duration-150">
+                                    <svg class="w-4 h-4" x-show="!showConfirmPassword" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    <svg class="w-4 h-4" x-show="showConfirmPassword" x-cloak fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="group relative overflow-hidden w-full mt-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/40 hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer">
+                            <div class="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"></div>
+                            <span x-text="role === 'mahasiswa' ? 'Daftar Akun Mahasiswa' : 'Daftar Akun Administrator'"></span>
+                            <svg class="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </button>
+
+                        <!-- Back to Login Link -->
+                        <div class="pt-4 border-t border-slate-200 dark:border-slate-800 text-center">
+                            <p class="text-xs text-slate-600 dark:text-slate-400">
+                                Sudah memiliki akun?
+                                <a href="{{ route('login') }}" class="group inline-flex items-center gap-1 font-bold text-indigo-600 dark:text-cyan-400 hover:text-indigo-700 dark:hover:text-cyan-300 hover:underline transition-all duration-200 ml-1">
+                                    <span>Masuk ke Portal</span>
+                                    <svg class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center text-xs text-slate-600 dark:text-slate-400 py-2 font-medium">
+                &copy; {{ date('Y') }} Certiva Cryptographic System &bull; Universitas Bina Sarana Informatika
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
