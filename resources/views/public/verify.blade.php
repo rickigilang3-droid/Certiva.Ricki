@@ -279,15 +279,148 @@
             <!-- Verification Results Display -->
             @if(isset($verificationResult))
                 @if($verificationResult['status'] === 'not_found')
-                    <!-- Not Found -->
-                    <div class="max-w-3xl mx-auto rounded-2xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/20 p-6 sm:p-8 text-center space-y-4 shadow-sm">
-                        <div class="w-14 h-14 rounded-full bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 mx-auto flex items-center justify-center">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <!-- Not Found & Full Forensic Report -->
+                    <div class="max-w-5xl mx-auto space-y-6">
+                        <div class="rounded-3xl border-2 border-rose-500 bg-white dark:bg-slate-900 shadow-xl overflow-hidden">
+                            <!-- Top Danger Header -->
+                            <div class="bg-gradient-to-r from-rose-600 via-rose-700 to-red-800 p-6 sm:p-8 text-white">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center shrink-0 text-3xl font-black shadow-inner">
+                                            ✕
+                                        </div>
+                                        <div class="space-y-1">
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-600 border border-white/20 text-white">
+                                                    Peringatan: Dokumen Tidak Sah
+                                                </span>
+                                                <span class="px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-white text-rose-700 shadow-sm">
+                                                    Status Akhir: INVALID
+                                                </span>
+                                            </div>
+                                            <h2 class="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                                                Sertifikat Tidak Valid &bull; Dokumen Tidak Dikenal / Tanpa Segel Resmi Kampus
+                                            </h2>
+                                            <p class="text-xs sm:text-sm text-rose-100 font-medium">
+                                                Gagal Memvalidasi Keaslian &bull; Dokumen bukan sertifikat resmi terbitan Universitas Bina Sarana Informatika
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Certificate ID Badge -->
+                                    <div class="sm:text-right bg-white/10 backdrop-blur-sm px-4 py-3 rounded-2xl border border-white/20">
+                                        <div class="text-[11px] font-bold text-rose-200 uppercase tracking-wider">Pencarian / ID</div>
+                                        <div class="font-mono text-base sm:text-lg font-black tracking-wider text-white">
+                                            {{ $query }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sub-banner: Sertifikat Tidak Ditemukan -->
+                            <div class="border-b border-rose-100 dark:border-rose-900/40 bg-rose-50/70 dark:bg-rose-950/30 px-6 sm:px-8 py-4 flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-rose-900 dark:text-rose-200">Sertifikat Tidak Ditemukan</h3>
+                                    <p class="text-xs text-rose-700 dark:text-rose-300">
+                                        Nomor sertifikat <strong class="font-mono bg-rose-100 dark:bg-rose-900/60 px-2 py-0.5 rounded">{{ $query }}</strong> tidak terdaftar dalam pangkalan data terverifikasi Universitas Bina Sarana Informatika. Mohon periksa kembali dokumen yang Anda gunakan atau hubungi pihak kampus.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Body: Failure Reasons + Audit Table + Conclusion -->
+                            <div class="p-6 sm:p-8 space-y-8">
+                                
+                                <!-- 1. Alasan Verifikasi Gagal -->
+                                <div class="space-y-4">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-7 h-7 rounded-lg bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold text-sm">
+                                            !
+                                        </div>
+                                        <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">
+                                            Alasan Verifikasi Gagal
+                                        </h3>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 gap-4">
+                                        @foreach(($forensicAudit['detailed_reasons'] ?? []) as $reason)
+                                            <div class="p-5 rounded-2xl bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 space-y-2">
+                                                <div class="flex items-start gap-3">
+                                                    <span class="w-6 h-6 rounded-full bg-rose-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                                        {{ $reason['number'] }}
+                                                    </span>
+                                                    <div class="space-y-1 flex-1">
+                                                        <h4 class="font-bold text-sm text-rose-950 dark:text-rose-200">
+                                                            {{ $reason['title'] }}
+                                                        </h4>
+                                                        <p class="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                                                            {{ $reason['description'] }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <!-- 2. Tabel Hasil Audit Forensik & Kriptografis -->
+                                <div class="space-y-3">
+                                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                        <span>Hasil Audit Kriptografis & Forensik</span>
+                                    </h3>
+
+                                    <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+                                        <table class="w-full text-left text-xs">
+                                            <thead class="bg-slate-100 dark:bg-slate-800/70 text-slate-700 dark:text-slate-300 uppercase font-black tracking-wider text-[11px]">
+                                                <tr>
+                                                    <th class="py-3 px-4">Pemeriksaan</th>
+                                                    <th class="py-3 px-4">Hasil</th>
+                                                    <th class="py-3 px-4">Keterangan / Temuan Forensik</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
+                                                @foreach(($forensicAudit['audit_checks'] ?? []) as $check)
+                                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                                                        <td class="py-3.5 px-4 font-bold text-slate-900 dark:text-white whitespace-nowrap">
+                                                            {{ $check['item'] }}
+                                                        </td>
+                                                        <td class="py-3.5 px-4 whitespace-nowrap">
+                                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black {{ $check['result'] === 'valid' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300' }}">
+                                                                {{ $check['badge'] }}
+                                                            </span>
+                                                        </td>
+                                                        <td class="py-3.5 px-4 text-slate-600 dark:text-slate-300 font-medium">
+                                                            {{ $check['detail'] }}
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- 3. Kesimpulan Resmi -->
+                                <div class="p-4 sm:p-5 rounded-2xl bg-slate-100 dark:bg-slate-800/70 border-l-4 border-rose-600 text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed">
+                                    <strong class="font-extrabold text-slate-900 dark:text-white">Kesimpulan:</strong> 
+                                    {{ $forensicAudit['conclusion'] ?? 'Dokumen tidak dapat dinyatakan sebagai sertifikat yang valid atau resmi karena tidak memuat nomor registrasi terdaftar maupun tanda tangan digital terotentikasi dari Universitas Bina Sarana Informatika.' }}
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                                    <button type="button" @click="activeTab = 'pdf'; window.scrollTo({top: 200, behavior: 'smooth'})" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-sm transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                        <span>Unggah Dokumen PDF Lain</span>
+                                    </button>
+                                    <button type="button" @click="activeTab = 'search'; window.scrollTo({top: 200, behavior: 'smooth'})" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-xs transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                        <span>Cari Nomor Registrasi Lain</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <h2 class="text-xl font-bold text-rose-900 dark:text-rose-200">Sertifikat Tidak Ditemukan</h2>
-                        <p class="text-sm text-rose-700 dark:text-rose-300 max-w-lg mx-auto">
-                            Nomor sertifikat <strong class="font-mono bg-rose-100 dark:bg-rose-900/60 px-2 py-0.5 rounded">{{ $query }}</strong> tidak terdaftar dalam pangkalan data terverifikasi Universitas Bina Sarana Informatika. Mohon periksa kembali nomor sertifikat atau hubungi pihak kampus.
-                        </p>
                     </div>
 
                 @elseif($certificate)

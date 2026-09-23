@@ -81,6 +81,68 @@ class PublicVerificationController
                 ]);
             }
 
+            $pdfAudit = session('pdf_audit');
+            $forensicAudit = $pdfAudit ?? [
+                'is_uploaded_pdf' => false,
+                'is_unrecognized' => true,
+                'is_tampered' => true,
+                'tampered_reasons' => [
+                    "Nomor sertifikat \"{$certificate_number}\" tidak terdaftar dalam pangkalan data resmi universitas.",
+                    'Tidak ditemukan tanda tangan digital kriptografis yang mengesahkan nomor registrasi ini.',
+                    'Integritas dokumen tidak dapat divalidasi.',
+                ],
+                'detailed_reasons' => [
+                    [
+                        'number' => 1,
+                        'title' => 'Nomor Registrasi Tidak Terdaftar',
+                        'description' => "Nomor sertifikat \"{$certificate_number}\" tidak tercatat dalam arsip penerbitan Universitas Bina Sarana Informatika.",
+                    ],
+                    [
+                        'number' => 2,
+                        'title' => 'Signature Digital RSA-2048 Tidak Ditemukan',
+                        'description' => 'Tidak ditemukan segel digital institusi (RSA-2048) atau hash SHA-256 yang mengesahkan nomor registrasi ini.',
+                    ],
+                    [
+                        'number' => 3,
+                        'title' => 'Integritas Dokumen Gagal Diverifikasi',
+                        'description' => 'Sistem tidak dapat mengonfirmasi keaslian dokumen tanpa data registrasi resmi di pangkalan data kampus.',
+                    ],
+                ],
+                'audit_checks' => [
+                    [
+                        'item' => 'Certificate ID',
+                        'result' => 'invalid',
+                        'badge' => '❌ Tidak Terdaftar',
+                        'detail' => $certificate_number,
+                    ],
+                    [
+                        'item' => 'Data terdaftar',
+                        'result' => 'invalid',
+                        'badge' => '❌ Tidak Ada',
+                        'detail' => 'Tidak ada data di pangkalan data resmi UBSI',
+                    ],
+                    [
+                        'item' => 'Signature RSA-2048',
+                        'result' => 'invalid',
+                        'badge' => '❌ Tidak Ada',
+                        'detail' => 'Tanda tangan digital tidak tersedia / tidak valid',
+                    ],
+                    [
+                        'item' => 'Integritas dokumen',
+                        'result' => 'invalid',
+                        'badge' => '❌ Gagal',
+                        'detail' => 'Dokumen tidak dapat diverifikasi keasliannya',
+                    ],
+                    [
+                        'item' => 'Status akhir',
+                        'result' => 'invalid',
+                        'badge' => 'INVALID',
+                        'detail' => 'Nomor sertifikat tidak sah atau tidak valid',
+                    ],
+                ],
+                'conclusion' => 'Dokumen atau nomor registrasi ini tidak dapat dinyatakan sebagai sertifikat yang valid karena tidak tercatat pada sistem verifikasi resmi Universitas Bina Sarana Informatika.',
+            ];
+
             return view('public.verify', [
                 'certificate' => null,
                 'verificationResult' => [
@@ -89,6 +151,8 @@ class PublicVerificationController
                 ],
                 'activeKey' => $activeKey,
                 'query' => $certificate_number,
+                'forensicAudit' => $forensicAudit,
+                'pdfAudit' => $pdfAudit,
             ]);
         }
 
@@ -321,14 +385,136 @@ class PublicVerificationController
         $certNumber = $this->extractCertificateNumberFromPdf($content, $allText);
 
         if (! $certNumber) {
-            return redirect()->route('verify.index')
-                ->withErrors(['pdf_file' => 'Tidak ditemukan nomor registrasi sertifikat (format CERT-...) pada dokumen PDF yang diunggah. Pastikan dokumen merupakan sertifikat resmi terbitan Certiva.']);
+            $unrecognizedAudit = [
+                'is_uploaded_pdf' => true,
+                'is_unrecognized' => true,
+                'is_tampered' => true,
+                'tampered_reasons' => [
+                    'Tidak ditemukan nomor registrasi resmi (format CERT-...) pada dokumen PDF yang diunggah.',
+                    'Dokumen tidak memiliki tanda tangan digital kriptografis RSA-2048 maupun segel hash SHA-256 yang terdaftar di pangkalan data Certiva.',
+                    'Integritas dokumen tidak dapat divalidasi dan bukan merupakan sertifikat resmi terbitan Universitas Bina Sarana Informatika.',
+                ],
+                'detailed_reasons' => [
+                    [
+                        'number' => 1,
+                        'title' => 'Nomor Registrasi Tidak Ditemukan pada Dokumen',
+                        'description' => 'Sistem tidak menemukan format nomor registrasi sertifikat resmi (format: CERT-YYYY-...) pada teks, metadata, maupun aliran objek berkas PDF yang diunggah. Dokumen tidak terindeks dalam arsip resmi kampus.',
+                    ],
+                    [
+                        'number' => 2,
+                        'title' => 'Tanda Tangan Digital RSA-2048 Tidak Ditemukan',
+                        'description' => 'Dokumen tidak memiliki tanda tangan digital institusi (RSA-2048) atau segel hash integritas (SHA-256). Tanpa tanda tangan kriptografis resmi yang cocok dengan Kunci Publik Kampus, keabsahan dokumen tidak dapat diverifikasi.',
+                    ],
+                    [
+                        'number' => 3,
+                        'title' => 'Integritas Dokumen Gagal Diverifikasi',
+                        'description' => 'Dokumen yang diunggah tidak memenuhi standar autentikasi sertifikat digital kampus dan tidak dapat dinyatakan sebagai dokumen resmi yang diterbitkan oleh Universitas Bina Sarana Informatika.',
+                    ],
+                ],
+                'audit_checks' => [
+                    [
+                        'item' => 'Certificate ID',
+                        'result' => 'invalid',
+                        'badge' => '❌ Tidak Terdeteksi',
+                        'detail' => 'Nomor registrasi resmi (format CERT-...) tidak ditemukan pada dokumen PDF',
+                    ],
+                    [
+                        'item' => 'Data terdaftar',
+                        'result' => 'invalid',
+                        'badge' => '❌ Tidak Ada',
+                        'detail' => 'Tidak ditemukan arsip berkas di basis data resmi UBSI',
+                    ],
+                    [
+                        'item' => 'Signature RSA-2048',
+                        'result' => 'invalid',
+                        'badge' => '❌ Tidak Ditemukan',
+                        'detail' => 'Tidak memuat tanda tangan digital kriptografis resmi institusi',
+                    ],
+                    [
+                        'item' => 'Integritas dokumen',
+                        'result' => 'invalid',
+                        'badge' => '❌ Gagal',
+                        'detail' => 'Bukan dokumen sertifikat resmi terverifikasi',
+                    ],
+                    [
+                        'item' => 'Status akhir',
+                        'result' => 'invalid',
+                        'badge' => 'INVALID',
+                        'detail' => 'Dokumen TIDAK VALID / Bukan sertifikat resmi terbitan Certiva',
+                    ],
+                ],
+                'conclusion' => 'Dokumen tidak dapat dinyatakan sebagai sertifikat yang valid atau asli karena tidak memuat nomor registrasi terdaftar maupun tanda tangan digital terotentikasi dari Universitas Bina Sarana Informatika.',
+            ];
+
+            return redirect()->route('verify.show', ['certificate_number' => 'DOKUMEN-TIDAK-TERDAFTAR'])
+                ->with('pdf_audit', $unrecognizedAudit);
         }
 
         $certificate = Certificate::with('cryptoKey')->where('certificate_number', $certNumber)->first();
 
         if (! $certificate) {
-            return redirect()->route('verify.show', ['certificate_number' => $certNumber]);
+            $unregisteredAudit = [
+                'is_uploaded_pdf' => true,
+                'is_unrecognized' => true,
+                'is_tampered' => true,
+                'tampered_reasons' => [
+                    "Nomor registrasi {$certNumber} tidak terdaftar dalam pangkalan data resmi universitas.",
+                    'Tanda tangan digital institusi tidak dapat diverifikasi terhadap arsip manapun.',
+                ],
+                'detailed_reasons' => [
+                    [
+                        'number' => 1,
+                        'title' => 'Nomor Registrasi Tidak Terdaftar di Pangkalan Data',
+                        'description' => "Nomor registrasi ({$certNumber}) yang tertera pada berkas PDF tidak ditemukan pada basis data resmi Universitas Bina Sarana Informatika.",
+                    ],
+                    [
+                        'number' => 2,
+                        'title' => 'Signature Digital Tidak Valid / Tidak Terotentikasi',
+                        'description' => 'Karena sertifikat tidak terdaftar di sistem, tidak ada pasangan kunci publik kriptografis yang mengesahkan penerbitan dokumen ini.',
+                    ],
+                    [
+                        'number' => 3,
+                        'title' => 'Integritas Dokumen Gagal Diverifikasi',
+                        'description' => 'Dokumen terindikasi sebagai sertifikat palsu atau dibuat tanpa otorisasi penerbit resmi.',
+                    ],
+                ],
+                'audit_checks' => [
+                    [
+                        'item' => 'Certificate ID',
+                        'result' => 'invalid',
+                        'badge' => '❌ Tidak Terdaftar',
+                        'detail' => "{$certNumber} (Tidak ditemukan di database)",
+                    ],
+                    [
+                        'item' => 'Data terdaftar',
+                        'result' => 'invalid',
+                        'badge' => '❌ Tidak Ditemukan',
+                        'detail' => 'Tidak tercatat di basis data resmi UBSI',
+                    ],
+                    [
+                        'item' => 'Signature RSA-2048',
+                        'result' => 'invalid',
+                        'badge' => '❌ Tidak Valid',
+                        'detail' => 'Kunci publik universitas menolak keabsahan dokumen',
+                    ],
+                    [
+                        'item' => 'Integritas dokumen',
+                        'result' => 'invalid',
+                        'badge' => '❌ Gagal',
+                        'detail' => 'Integritas berkas tidak dapat dipastikan',
+                    ],
+                    [
+                        'item' => 'Status akhir',
+                        'result' => 'invalid',
+                        'badge' => 'INVALID',
+                        'detail' => 'Dokumen palsu atau nomor tidak berizin',
+                    ],
+                ],
+                'conclusion' => 'Dokumen tidak dapat dinyatakan sebagai sertifikat yang valid karena nomor registrasi tidak pernah diterbitkan atau dicatat oleh universitas.',
+            ];
+
+            return redirect()->route('verify.show', ['certificate_number' => $certNumber])
+                ->with('pdf_audit', $unregisteredAudit);
         }
 
         $pdfAudit = $this->validatePdfContentAgainstCertificate($allText, $certificate);
@@ -346,10 +532,33 @@ class PublicVerificationController
 
         if (preg_match_all('/stream[\r\n]+(.*?)[\r\n]+endstream/s', $content, $streams)) {
             foreach ($streams[1] as $stream) {
-                $uncompressed = @gzuncompress($stream);
+                $uncompressed = @gzuncompress($stream) ?: @gzinflate($stream);
                 if ($uncompressed) {
                     $cleaned = str_replace("\x00", '', $uncompressed);
                     $allText .= "\n".$uncompressed."\n".$cleaned;
+
+                    // Reconstruct text from PDF TJ kerning arrays: [(C) 10 (E) -5 (R) (T)] TJ
+                    if (preg_match_all('/\[(.*?)\]\s*TJ/s', $uncompressed, $tjMatches)) {
+                        foreach ($tjMatches[1] as $tj) {
+                            if (preg_match_all('/\((.*?)\)/s', $tj, $tjParts)) {
+                                $joined = implode('', $tjParts[1]);
+                                $allText .= "\n".$joined."\n".str_replace("\x00", '', $joined);
+                            }
+                        }
+                    }
+
+                    // Decode hex strings <004300450052...>
+                    if (preg_match_all('/<([0-9a-fA-F\s]{16,})>/', $uncompressed, $hexMatches)) {
+                        foreach ($hexMatches[1] as $hex) {
+                            $cleanHex = preg_replace('/\s+/', '', $hex);
+                            if (strlen($cleanHex) % 2 === 0) {
+                                $bin = @hex2bin($cleanHex);
+                                if ($bin) {
+                                    $allText .= "\n".$bin."\n".str_replace("\x00", '', $bin);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -552,24 +761,80 @@ class PublicVerificationController
      */
     protected function extractCertificateNumberFromPdf(string $content, ?string $allText = null): ?string
     {
-        $searchSpace = $allText ?? $content;
+        $searchSpace = ($allText ?? '')."\n".$content;
 
         // 1. Direct search on uncompressed/full text
-        if (preg_match('/CERT-\d{4}-[A-Za-z0-9_-]+/i', $searchSpace, $matches)) {
+        if (preg_match('/CERT-[A-Za-z0-9_-]{4,40}/i', $searchSpace, $matches)) {
             return trim($matches[0]);
         }
 
-        // 2. Search within compressed stream objects (FlateDecode) if allText was not provided
-        if (preg_match_all('/stream[\r\n]+(.*?)[\r\n]+endstream/s', $content, $streams)) {
-            foreach ($streams[1] as $stream) {
-                $uncompressed = @gzuncompress($stream);
-                if ($uncompressed && preg_match('/CERT-\d{4}-[A-Za-z0-9_-]+/i', $uncompressed, $matches)) {
-                    return trim($matches[0]);
+        // 2. Clean null-bytes (handles UTF-16BE plain text from DomPDF/PDFlib)
+        $noNulls = str_replace("\x00", '', $searchSpace);
+        if (preg_match('/CERT-[A-Za-z0-9_-]{4,40}/i', $noNulls, $matches)) {
+            return trim($matches[0]);
+        }
+
+        // 3. Spaced hyphens or en-dash/em-dash: e.g. "CERT - 2026 - CAMPUS - 00106"
+        if (preg_match('/CERT\s*[-–—]\s*(\d{4})\s*[-–—]\s*([A-Za-z0-9_]+)\s*[-–—]\s*([A-Za-z0-9_-]+)/i', $noNulls, $matches)) {
+            return 'CERT-'.$matches[1].'-'.strtoupper($matches[2]).'-'.$matches[3];
+        }
+        if (preg_match('/CERT\s*[-–—]\s*([A-Za-z0-9_–—-]+)/i', $noNulls, $matches)) {
+            $normalized = preg_replace('/\s*[-–—]\s*/', '-', trim($matches[0]));
+            if (preg_match('/CERT-[A-Za-z0-9_-]{4,40}/i', $normalized, $nm)) {
+                return trim($nm[0]);
+            }
+        }
+
+        // 4. URL format: verify/CERT-...
+        if (preg_match('/verify\/(CERT-[A-Za-z0-9_-]{4,40})/i', $noNulls, $matches)) {
+            return trim($matches[1]);
+        }
+
+        // 5. TJ kerning array reconstruction directly on content
+        if (preg_match_all('/\[(.*?)\]\s*TJ/s', $noNulls, $tjMatches)) {
+            foreach ($tjMatches[1] as $tjContent) {
+                if (preg_match_all('/\((.*?)\)/s', $tjContent, $parts)) {
+                    $joined = implode('', $parts[1]);
+                    if (preg_match('/CERT-[A-Za-z0-9_-]{4,40}/i', $joined, $m)) {
+                        return trim($m[0]);
+                    }
                 }
             }
         }
 
-        // 3. Fallback: match by hash
+        // 6. Hex encoded strings <0043004500520054...> in raw PDF objects
+        if (preg_match_all('/<([0-9a-fA-F\s]{16,})>/', $content, $hexMatches)) {
+            foreach ($hexMatches[1] as $hex) {
+                $cleanHex = preg_replace('/\s+/', '', $hex);
+                if (strlen($cleanHex) % 2 === 0) {
+                    $binary = @hex2bin($cleanHex);
+                    if ($binary) {
+                        $binaryClean = str_replace("\x00", '', $binary);
+                        if (preg_match('/CERT-[A-Za-z0-9_-]{4,40}/i', $binaryClean, $m)) {
+                            return trim($m[0]);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 7. Search FlateDecode streams manually if not already unpacked
+        if (preg_match_all('/stream[\r\n]+(.*?)[\r\n]+endstream/s', $content, $streams)) {
+            foreach ($streams[1] as $stream) {
+                $uncompressed = @gzuncompress($stream) ?: @gzinflate($stream);
+                if ($uncompressed) {
+                    $uncompressedClean = str_replace("\x00", '', $uncompressed);
+                    if (preg_match('/CERT-[A-Za-z0-9_-]{4,40}/i', $uncompressedClean, $m)) {
+                        return trim($m[0]);
+                    }
+                    if (preg_match('/verify\/(CERT-[A-Za-z0-9_-]{4,40})/i', $uncompressedClean, $m)) {
+                        return trim($m[1]);
+                    }
+                }
+            }
+        }
+
+        // 8. Fallback: match by file hash
         $fileSha256 = hash('sha256', $content);
         $cert = Certificate::where('hash_sha256', $fileSha256)->first();
         if ($cert) {

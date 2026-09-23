@@ -300,6 +300,63 @@ class StudentPortalAndAdvancedFeaturesTest extends TestCase
         });
     }
 
+    public function test_uploaded_unrecognized_pdf_displays_full_forensic_invalid_report(): void
+    {
+        // Dummy PDF without any CERT registration number
+        $dummyPdfContent = "%PDF-1.4\n1 0 obj\n<< /Title (Dokumen Biasa) >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF";
+        $fakePdf = UploadedFile::fake()->createWithContent('random_document.pdf', $dummyPdfContent);
+
+        $response = $this->post('/verify/pdf-upload', [
+            'pdf_file' => $fakePdf,
+        ]);
+
+        $response->assertRedirect(route('verify.show', ['certificate_number' => 'DOKUMEN-TIDAK-TERDAFTAR']));
+        $response->assertSessionHas('pdf_audit', function ($audit) {
+            return $audit['is_uploaded_pdf'] === true
+                && $audit['is_unrecognized'] === true
+                && $audit['is_tampered'] === true;
+        });
+
+        $follow = $this->followingRedirects()->post('/verify/pdf-upload', [
+            'pdf_file' => $fakePdf,
+        ]);
+        $follow->assertStatus(200);
+        $follow->assertSee('Sertifikat Tidak Valid');
+        $follow->assertSee('Dokumen Tidak Dikenal / Tanpa Segel Resmi Kampus');
+        $follow->assertSee('Alasan Verifikasi Gagal');
+        $follow->assertSee('Nomor Registrasi Tidak Ditemukan');
+        $follow->assertSee('Tanda Tangan Digital RSA-2048 Tidak Ditemukan');
+        $follow->assertSee('Integritas Dokumen Gagal Diverifikasi');
+        $follow->assertSee('Hasil Audit Kriptografis');
+        $follow->assertSee('INVALID');
+        $follow->assertSee('Kesimpulan:');
+    }
+
+    public function test_uploaded_pdf_with_unregistered_certificate_number_displays_forensic_invalid_report(): void
+    {
+        $fakeCertPdfContent = "%PDF-1.4\n1 0 obj\n<< /Title (CERT-2026-FAKE-99999) >>\nendobj\nstream\n(CERT-2026-FAKE-99999) Tj\nendstream\ntrailer\n<< /Root 1 0 R >>\n%%EOF";
+        $fakePdf = UploadedFile::fake()->createWithContent('forged_cert.pdf', $fakeCertPdfContent);
+
+        $response = $this->post('/verify/pdf-upload', [
+            'pdf_file' => $fakePdf,
+        ]);
+
+        $response->assertRedirect(route('verify.show', ['certificate_number' => 'CERT-2026-FAKE-99999']));
+        $response->assertSessionHas('pdf_audit', function ($audit) {
+            return $audit['is_uploaded_pdf'] === true
+                && $audit['is_tampered'] === true;
+        });
+
+        $follow = $this->followingRedirects()->post('/verify/pdf-upload', [
+            'pdf_file' => $fakePdf,
+        ]);
+        $follow->assertStatus(200);
+        $follow->assertSee('Sertifikat Tidak Valid');
+        $follow->assertSee('Nomor Registrasi Tidak Terdaftar');
+        $follow->assertSee('Signature Digital Tidak Valid');
+        $follow->assertSee('CERT-2026-FAKE-99999');
+    }
+
     public function test_revoked_certificate_shows_revoked_status_and_watermark(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
