@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Certificate;
 use App\Models\User;
 use App\Services\CertificatePdfService;
@@ -154,6 +155,16 @@ class CertificateController
             'qr_path' => $qrPath,
         ]);
 
+        ActivityLog::create([
+            'user_id' => $request->user()?->id,
+            'action' => 'certificate.issued',
+            'subject_type' => Certificate::class,
+            'subject_id' => $certificate->id,
+            'description' => "Menerbitkan sertifikat {$certificate->certificate_number} untuk {$certificate->recipient_name}.",
+            'ip_address' => $request->ip(),
+            'metadata' => ['certificate_number' => $certificate->certificate_number],
+        ]);
+
         // 5. Generate and store PDF
         $pdfPath = $this->pdfService->generateAndSavePdf($certificate);
 
@@ -194,6 +205,16 @@ class CertificateController
             'status' => 'revoked',
             'revocation_reason' => $validated['revocation_reason'],
             'revoked_at' => Carbon::now(),
+        ]);
+
+        ActivityLog::create([
+            'user_id' => $request->user()?->id,
+            'action' => 'certificate.revoked',
+            'subject_type' => Certificate::class,
+            'subject_id' => $certificate->id,
+            'description' => "Mencabut sertifikat {$certificate->certificate_number}.",
+            'ip_address' => $request->ip(),
+            'metadata' => ['reason' => $validated['revocation_reason']],
         ]);
 
         // Regenerate stored PDF to immediately include the revocation watermark

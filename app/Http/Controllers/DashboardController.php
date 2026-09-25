@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Certificate;
 use App\Models\VerificationLog;
 use App\Services\CryptoService;
@@ -34,12 +35,14 @@ class DashboardController
 
         $recentCertificates = Certificate::with('cryptoKey')->latest()->limit(5)->get();
         $recentLogs = VerificationLog::with('certificate')->latest()->limit(7)->get();
+        $recentActivityLogs = ActivityLog::with('user')->latest()->limit(6)->get();
 
         return view('dashboard', [
             'stats' => $stats,
             'activeKey' => $activeKey,
             'recentCertificates' => $recentCertificates,
             'recentLogs' => $recentLogs,
+            'recentActivityLogs' => $recentActivityLogs,
         ]);
     }
 }

@@ -25,7 +25,7 @@
         </div>
     </x-slot>
 
-    <div class="py-6 space-y-6" x-data="{ 
+    <div class="py-6 space-y-6 animate-fade-in-up" x-data="{ 
         previewUrl: '', 
         previewTitle: '', 
         previewCertNumber: '',
@@ -39,7 +39,54 @@
         showPreviewModal: false,
         activePreviewTab: 'visual',
         copiedToast: false,
+        certs: {
+            @foreach($certificates as $c)
+            @php
+                $cDate = \Carbon\Carbon::parse($c->issued_date);
+                $lUrl = 'https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME'
+                    . '&name=' . urlencode($c->title)
+                    . '&organizationName=' . urlencode('Universitas Bina Sarana Informatika')
+                    . '&issueYear=' . $cDate->year
+                    . '&issueMonth=' . $cDate->month
+                    . '&certUrl=' . urlencode(route('verify.show', $c->certificate_number))
+                    . '&certId=' . urlencode($c->certificate_number);
+            @endphp
+            {{ $c->id }}: {
+                id: {{ $c->id }},
+                title: @js($c->title),
+                certificate_number: @js($c->certificate_number),
+                recipient_name: @js($c->recipient_name),
+                category: @js($c->category ?? 'Ijazah Kelulusan'),
+                issued_date_formatted: @js($cDate->translatedFormat('d F Y')),
+                signatory_name: @js($c->signatory_name),
+                preview_url: @js(route('student.certificates.preview', $c)),
+                download_url: @js(route('student.certificates.pdf', $c)),
+                verify_url: @js(route('verify.show', $c->certificate_number)),
+                linkedin_url: @js($lUrl)
+            },
+            @endforeach
+        },
+        openPreviewById(id) {
+            const cert = this.certs[id];
+            if (!cert) return;
+            this.previewTitle = cert.title;
+            this.previewCertNumber = cert.certificate_number;
+            this.previewRecipient = cert.recipient_name;
+            this.previewCategory = cert.category || 'Ijazah Kelulusan';
+            this.previewDate = cert.issued_date_formatted;
+            this.previewSignatory = cert.signatory_name;
+            this.previewUrl = cert.preview_url;
+            this.previewDownloadUrl = cert.download_url;
+            this.previewLinkedInUrl = cert.linkedin_url;
+            this.previewVerifyUrl = cert.verify_url;
+            this.activePreviewTab = 'visual';
+            this.showPreviewModal = true;
+        },
         openPreview(cert) {
+            if (typeof cert === 'number' || typeof cert === 'string') {
+                return this.openPreviewById(cert);
+            }
+            if (!cert) return;
             this.previewTitle = cert.title;
             this.previewCertNumber = cert.certificate_number;
             this.previewRecipient = cert.recipient_name;
@@ -76,7 +123,7 @@
         </div>
 
         <!-- Student Profile & Stat Banner -->
-        <div class="p-6 rounded-3xl bg-gradient-to-br from-indigo-50/80 via-white to-slate-50 dark:from-slate-900/90 dark:via-[#0E1528] dark:to-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div class="p-6 rounded-3xl bg-gradient-to-br from-indigo-50/80 via-white to-slate-50 dark:from-slate-900/90 dark:via-[#0E1528] dark:to-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 animate-fade-in-up motion-reduce:animate-none motion-reduce:opacity-100" style="animation-delay: 100ms">
             <div class="flex items-center gap-4">
                 <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-cyan-500 text-white flex items-center justify-center font-black text-xl shadow-lg shadow-indigo-500/20 shrink-0">
                     {{ strtoupper(substr($user->name, 0, 1)) }}
@@ -121,7 +168,7 @@
         @php
             $portfolioUrl = route('student.portfolio', $user->identifier ?: $user->id);
         @endphp
-        <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-cyan-600/10 via-indigo-600/10 to-blue-600/10 border border-cyan-200 dark:border-cyan-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-cyan-600/10 via-indigo-600/10 to-blue-600/10 border border-cyan-200 dark:border-cyan-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in-up motion-reduce:animate-none motion-reduce:opacity-100" style="animation-delay: 180ms">
             <div class="flex items-center gap-3.5">
                 <div class="w-10 h-10 rounded-xl bg-cyan-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-cyan-600/20">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
@@ -153,7 +200,7 @@
         </div>
 
         <!-- Search and Filter Bar -->
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 animate-fade-in-up motion-reduce:animate-none motion-reduce:opacity-100" style="animation-delay: 240ms">
             <form method="GET" action="{{ route('student.certificates') }}" class="w-full sm:max-w-md relative">
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -228,12 +275,14 @@
                         ]);
                     @endphp
 
-                    <div class="group relative rounded-3xl bg-white dark:bg-slate-900/85 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500/50 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden">
+                    <div class="group relative rounded-3xl bg-white dark:bg-slate-900/85 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500/50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden animate-fade-in-up motion-reduce:animate-none motion-reduce:opacity-100" style="animation-delay: {{ 300 + ($loop->index * 70) }}ms">
+
+                        <div class="h-1.5 bg-gradient-to-r from-indigo-500 via-cyan-400 to-emerald-400 opacity-80 transition-opacity duration-300 group-hover:opacity-100"></div>
                         
                         <!-- Card Header -->
-                        <div class="p-6 space-y-4">
+                        <div class="p-5 sm:p-6 space-y-4">
                             <div class="flex items-start justify-between gap-3">
-                                <span class="font-mono text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+                                <span class="font-mono text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 truncate max-w-[62%]" title="{{ $cert->certificate_number }}">
                                     {{ $cert->certificate_number }}
                                 </span>
                                 
@@ -263,7 +312,7 @@
                                 @endif
                             </div>
 
-                            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800/60 text-xs space-y-1.5">
+                            <div class="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800/60 text-xs space-y-2">
                                 <div class="flex items-center justify-between text-slate-600 dark:text-slate-400">
                                     <span>Tanggal Terbit:</span>
                                     <strong class="text-slate-800 dark:text-slate-200">{{ $certDate->translatedFormat('d F Y') }}</strong>
@@ -282,12 +331,12 @@
                         </div>
 
                         <!-- Card Actions -->
-                        <div class="p-4 bg-slate-50/70 dark:bg-slate-950/40 border-t border-slate-100 dark:border-slate-800/80 space-y-2">
+                        <div class="p-4 bg-slate-50/70 dark:bg-slate-950/40 border-t border-slate-100 dark:border-slate-800/80 space-y-2.5">
                             <div class="flex items-center justify-between gap-2">
                                 <div class="flex items-center gap-1.5">
                                     <!-- Preview Button (Instant Modal) -->
                                     <button type="button" 
-                                            @click="openPreview({{ $certPayloadJson }})"
+                                            @click="openPreviewById({{ $cert->id }})"
                                             class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-indigo-600 transition shadow-sm"
                                             title="Lihat Pratinjau Dokumen">
                                         <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
@@ -338,8 +387,6 @@
                 {{ $certificates->links() }}
             </div>
         @endif
-
-    </div>
 
     <!-- Enhanced Certificate Preview Modal (Instant Visual + Optional PDF Stream) -->
     <div x-show="showPreviewModal" 
@@ -436,7 +483,7 @@
 
                 <!-- TAB 2: Embedded PDF Stream -->
                 <div x-show="activePreviewTab === 'pdf'" class="w-full h-[60vh] bg-slate-200 dark:bg-slate-950 rounded-2xl overflow-hidden">
-                    <iframe :src="previewUrl" class="w-full h-full border-0"></iframe>
+                    <iframe :src="activePreviewTab === 'pdf' ? previewUrl : 'about:blank'" class="w-full h-full border-0"></iframe>
                 </div>
 
             </div>
@@ -463,5 +510,6 @@
 
         </div>
     </div>
+</div>
 
 </x-app-layout>

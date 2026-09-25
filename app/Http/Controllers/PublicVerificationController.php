@@ -335,6 +335,17 @@ class PublicVerificationController
     }
 
     /**
+     * Preview the authentic certificate PDF directly in the browser without downloading.
+     */
+    public function previewPdf(string $certificate_number)
+    {
+        $certificate = Certificate::where('certificate_number', trim($certificate_number))->firstOrFail();
+        $pdfSvc = app(CertificatePdfService::class);
+
+        return $pdfSvc->streamPdf($certificate);
+    }
+
+    /**
      * View raw cryptographic proof JSON.
      */
     public function rawProof(string $certificate_number)

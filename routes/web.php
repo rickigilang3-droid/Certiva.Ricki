@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\CertificateImportController;
 use App\Http\Controllers\CryptoKeyController;
@@ -15,6 +16,7 @@ Route::get('/', [PublicVerificationController::class, 'index'])->name('home');
 Route::get('/verify', [PublicVerificationController::class, 'index'])->name('verify.index');
 Route::post('/verify/pdf-upload', [PublicVerificationController::class, 'verifyPdfUpload'])->name('verify.pdf.upload');
 Route::get('/verify/{certificate_number}', [PublicVerificationController::class, 'show'])->name('verify.show');
+Route::get('/verify/{certificate_number}/preview', [PublicVerificationController::class, 'previewPdf'])->name('verify.preview');
 Route::get('/verify/{certificate_number}/download', [PublicVerificationController::class, 'downloadPdf'])->name('verify.download');
 Route::get('/verify/{certificate_number}/proof', [PublicVerificationController::class, 'rawProof'])->name('verify.proof');
 
@@ -60,6 +62,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Verification Audit Logs
         Route::get('/verification-logs', [VerificationLogController::class, 'index'])->name('verification-logs.index');
+        Route::get('/activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
     });
 });
 

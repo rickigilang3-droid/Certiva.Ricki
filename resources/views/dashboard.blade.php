@@ -286,6 +286,31 @@
             <div class="bg-white dark:bg-slate-900/80 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                 <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                     <div>
+
+                    <!-- Recent Admin Activity -->
+                    <div class="bg-white dark:bg-slate-900/80 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                        <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
+                            <div>
+                                <h3 class="font-bold text-lg text-slate-900 dark:text-white">Aktivitas Admin Terbaru</h3>
+                                <p class="text-xs text-slate-600 dark:text-slate-300 font-medium">Perubahan penting pada sertifikat dan keamanan sistem.</p>
+                            </div>
+                            <a href="{{ route('activity-logs.index') }}" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-cyan-300 transition">Lihat semua &rarr;</a>
+                        </div>
+                        <div class="divide-y divide-slate-100 dark:divide-slate-800">
+                            @forelse($recentActivityLogs as $activity)
+                                <div class="flex items-start gap-4 px-6 py-4 transition hover:bg-slate-50/70 dark:hover:bg-slate-800/30">
+                                    <span class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full {{ str_ends_with($activity->action, 'revoked') ? 'bg-rose-500' : (str_starts_with($activity->action, 'crypto') ? 'bg-cyan-500' : 'bg-indigo-500') }}"></span>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="text-xs font-semibold text-slate-800 dark:text-slate-200">{{ $activity->description }}</div>
+                                        <div class="mt-1 text-[11px] text-slate-500 dark:text-slate-400">{{ $activity->user?->name ?? 'Sistem' }} &bull; {{ $activity->created_at->diffForHumans() }}</div>
+                                    </div>
+                                    <span class="hidden rounded-full bg-slate-100 px-2 py-1 font-mono text-[10px] text-slate-500 dark:bg-slate-800 dark:text-slate-400 sm:inline-flex">{{ $activity->action }}</span>
+                                </div>
+                            @empty
+                                <div class="px-6 py-8 text-center text-xs text-slate-500 dark:text-slate-400">Belum ada aktivitas admin tercatat.</div>
+                            @endforelse
+                        </div>
+                    </div>
                         <h3 class="font-bold text-lg text-slate-900 dark:text-white">Log Aktivitas Verifikasi Publik</h3>
                         <p class="text-xs text-slate-600 dark:text-slate-300 font-medium">Audit pemindaian QR Code dan query validasi dari pihak ketiga.</p>
                     </div>

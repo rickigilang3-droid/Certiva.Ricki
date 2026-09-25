@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\CryptoKey;
 use App\Services\CryptoService;
 use Illuminate\Http\Request;
@@ -36,6 +37,16 @@ class CryptoKeyController
     {
         $name = $request->input('key_name', 'Universitas Bina Sarana Informatika Rotated Key - '.now()->format('Y-m-d'));
         $newKey = $this->cryptoService->rotateKey($name);
+
+        ActivityLog::create([
+            'user_id' => $request->user()?->id,
+            'action' => 'crypto_key.rotated',
+            'subject_type' => CryptoKey::class,
+            'subject_id' => $newKey->id,
+            'description' => "Merotasi kunci kriptografi dan mengaktifkan {$newKey->key_id}.",
+            'ip_address' => $request->ip(),
+            'metadata' => ['key_id' => $newKey->key_id],
+        ]);
 
         return redirect()->route('crypto-keys.index')
             ->with('status', "Kunci kriptografi RSA-2048 berhasil dirotasi. Kunci aktif baru: {$newKey->key_id}.");

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\ActivityLog;
 use App\Models\Certificate;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
@@ -59,6 +60,10 @@ class CertificateManagementTest extends TestCase
         $this->assertNotEmpty($cert->signature_rsapss);
         $this->assertNotEmpty($cert->hash_sha256);
         $this->assertEquals('active', $cert->status);
+        $this->assertDatabaseHas('activity_logs', [
+            'action' => 'certificate.issued',
+            'subject_id' => $cert->id,
+        ]);
 
         $response->assertRedirect(route('certificates.show', $cert));
     }
@@ -76,6 +81,25 @@ class CertificateManagementTest extends TestCase
         $this->assertEquals('revoked', $cert->status);
         $this->assertEquals('Pelanggaran etika akademik mahasiswa', $cert->revocation_reason);
         $this->assertNotNull($cert->revoked_at);
+        $this->assertDatabaseHas('activity_logs', [
+            'action' => 'certificate.revoked',
+            'subject_id' => $cert->id,
+        ]);
+    }
+
+    public function test_admin_can_view_activity_logs(): void
+    {
+        $user = User::first();
+        ActivityLog::create([
+            'user_id' => $user->id,
+            'action' => 'certificate.issued',
+            'description' => 'Test audit activity.',
+            'ip_address' => '127.0.0.1',
+        ]);
+
+        $response = $this->actingAs($user)->get('/activity-logs');
+
+        $response->assertOk()->assertSee('Test audit activity.');
     }
 
     public function test_authenticated_user_can_download_certificate_pdf(): void
