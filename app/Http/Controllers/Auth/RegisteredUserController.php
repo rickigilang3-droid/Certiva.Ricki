@@ -37,6 +37,7 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ], [
             'identifier.required' => 'Nomor Induk Mahasiswa (NIM) wajib diisi untuk pendaftaran akun mahasiswa.',
+            'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
         ]);
 
         $user = User::create([

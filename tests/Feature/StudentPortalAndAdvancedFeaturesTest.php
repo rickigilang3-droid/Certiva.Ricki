@@ -31,8 +31,8 @@ class StudentPortalAndAdvancedFeaturesTest extends TestCase
     public function test_student_can_register_with_nim_and_redirects_to_student_portal(): void
     {
         $response = $this->post('/register', [
-            'name' => 'Siti Nurhaliza',
-            'email' => 'siti@student.bsi.ac.id',
+            'name' => 'Nadia Putri',
+            'email' => 'nadia@student.bsi.ac.id',
             'role' => 'mahasiswa',
             'identifier' => '12220199',
             'password' => 'password123',
@@ -40,7 +40,7 @@ class StudentPortalAndAdvancedFeaturesTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $user = User::where('email', 'siti@student.bsi.ac.id')->first();
+        $user = User::where('email', 'nadia@student.bsi.ac.id')->first();
         $this->assertNotNull($user);
         $this->assertEquals('mahasiswa', $user->role);
         $this->assertEquals('12220199', $user->identifier);

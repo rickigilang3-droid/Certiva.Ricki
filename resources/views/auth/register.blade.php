@@ -237,7 +237,7 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                                 </div>
                                 <input id="name" type="text" name="name" x-model="name" required autofocus autocomplete="name"
-                                       placeholder="misal: Siti Nurhaliza atau Amelia Dwi Oktaviani"
+                                       placeholder="misal: Amelia Dwi Oktaviani"
                                        class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950/60 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs font-medium focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 focus:-translate-y-0.5 focus:shadow-md transition-all duration-200" />
                             </div>
                         </div>

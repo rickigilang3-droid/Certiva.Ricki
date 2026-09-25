@@ -31,6 +31,8 @@
             'accent' => '#0284c7',
             'title' => '#1e1b4b',
             'header' => '#312e81',
+            'muted' => '#475569',
+            'soft' => '#ecfeff',
         ],
         'achievement' => [
             'outer' => '#78350f',
@@ -38,6 +40,8 @@
             'accent' => '#b45309',
             'title' => '#451a03',
             'header' => '#78350f',
+            'muted' => '#57534e',
+            'soft' => '#fffbeb',
         ],
         'seminar' => [
             'outer' => '#4c1d95',
@@ -45,6 +49,8 @@
             'accent' => '#6d28d9',
             'title' => '#2e1065',
             'header' => '#4c1d95',
+            'muted' => '#52525b',
+            'soft' => '#f5f3ff',
         ],
         default => [
             'outer' => '#0f2b48',
@@ -52,6 +58,8 @@
             'accent' => '#b45309',
             'title' => '#0f2b48',
             'header' => '#0f2b48',
+            'muted' => '#475569',
+            'soft' => '#fffbeb',
         ],
     };
 @endphp
@@ -135,13 +143,13 @@
         .inst-title {
             font-size: 16pt;
             font-weight: bold;
-            color: #0f2b48;
+            color: {{ $palette['title'] }};
             letter-spacing: 1.5pt;
             text-transform: uppercase;
         }
         .inst-subtitle {
             font-size: 8pt;
-            color: #64748b;
+            color: {{ $palette['muted'] }};
             letter-spacing: 1.2pt;
             text-transform: uppercase;
             margin-top: 2pt;
@@ -150,7 +158,7 @@
         .inst-faculty {
             font-size: 9pt;
             font-weight: bold;
-            color: #b45309;
+            color: {{ $palette['accent'] }};
             letter-spacing: 1pt;
             text-transform: uppercase;
             margin-top: 2pt;
@@ -162,7 +170,7 @@
             text-align: right;
         }
         .serial-container {
-            border-left: 2pt solid #b45309;
+            border-left: 2pt solid {{ $palette['accent'] }};
             padding-left: 8pt;
             text-align: right;
             display: inline-block;
@@ -170,7 +178,7 @@
         .serial-lbl {
             font-size: 7.5pt;
             font-weight: bold;
-            color: #64748b;
+            color: {{ $palette['muted'] }};
             text-transform: uppercase;
             font-family: "DejaVu Sans", Arial, sans-serif;
         }
@@ -178,7 +186,7 @@
             font-family: "Courier New", Courier, monospace;
             font-size: 9.5pt;
             font-weight: bold;
-            color: #0f2b48;
+            color: {{ $palette['title'] }};
             margin-top: 1pt;
         }
         .serial-badge {
@@ -198,7 +206,7 @@
         .gold-divider {
             width: 100%;
             height: 1.5pt;
-            background: #b45309;
+            background: {{ $palette['accent'] }};
             margin: 4pt 0 5pt 0;
         }
 
@@ -210,14 +218,14 @@
         .award-title {
             font-size: 21pt;
             font-weight: bold;
-            color: #0f2b48;
+            color: {{ $palette['title'] }};
             letter-spacing: 3pt;
             text-transform: uppercase;
         }
         .award-subtitle {
             font-size: 9.5pt;
             font-style: italic;
-            color: #475569;
+            color: {{ $palette['muted'] }};
             margin-top: 3pt;
         }
 
@@ -229,15 +237,15 @@
         .recipient-name {
             font-size: 22pt;
             font-weight: bold;
-            color: #0f2b48;
+            color: {{ $palette['title'] }};
             display: inline-block;
-            border-bottom: 2pt solid #b45309;
+            border-bottom: 2pt solid {{ $palette['accent'] }};
             padding: 0 16pt 2pt 16pt;
             letter-spacing: 0.5pt;
         }
         .recipient-nim {
             font-size: 9pt;
-            color: #475569;
+            color: {{ $palette['muted'] }};
             margin-top: 2pt;
             font-family: "DejaVu Sans", Arial, sans-serif;
         }
@@ -247,20 +255,20 @@
             text-align: center;
             font-size: 10pt;
             line-height: 1.3;
-            color: #334155;
+            color: {{ $palette['muted'] }};
             max-width: 88%;
             margin: 3pt auto 5pt auto;
         }
         .major-title {
             font-size: 13.5pt;
             font-weight: bold;
-            color: #0f2b48;
+            color: {{ $palette['title'] }};
             margin-top: 2pt;
             letter-spacing: 0.5pt;
         }
         .major-desc {
             font-size: 8.5pt;
-            color: #64748b;
+            color: {{ $palette['muted'] }};
             font-style: italic;
             margin-top: 1pt;
         }
@@ -278,8 +286,8 @@
         }
         .crypto-box {
             border: 1pt solid #cbd5e1;
-            background: #f8fafc;
-            border-left: 3pt solid #0f2b48;
+            background: {{ $palette['soft'] }};
+            border-left: 3pt solid {{ $palette['header'] }};
             border-radius: 3pt;
             padding: 4pt 6pt;
         }
@@ -297,11 +305,11 @@
             vertical-align: middle;
             font-family: "DejaVu Sans", Arial, sans-serif;
             font-size: 7pt;
-            color: #334155;
+            color: {{ $palette['muted'] }};
             line-height: 1.25;
         }
         .crypto-badge {
-            background: #0f2b48;
+            background: {{ $palette['header'] }};
             color: #ffffff;
             font-size: 6.5pt;
             font-weight: bold;
@@ -311,7 +319,7 @@
         .mono-val {
             font-family: "Courier New", Courier, monospace;
             font-weight: bold;
-            color: #0f2b48;
+            color: {{ $palette['title'] }};
         }
 
         /* Official Gold Security Seal */
@@ -324,8 +332,8 @@
             width: 56pt;
             height: 56pt;
             border-radius: 50%;
-            border: 1.5pt dashed #b45309;
-            background: #fffbeb;
+            border: 1.5pt dashed {{ $palette['accent'] }};
+            background: {{ $palette['soft'] }};
             margin: 0 auto;
             text-align: center;
             padding-top: 6pt;
@@ -333,21 +341,21 @@
         .seal-text-top {
             font-size: 5.5pt;
             font-weight: bold;
-            color: #92400e;
+            color: {{ $palette['header'] }};
             font-family: "DejaVu Sans", Arial, sans-serif;
             letter-spacing: 0.5pt;
         }
         .seal-text-mid {
             font-size: 8pt;
             font-weight: bold;
-            color: #b45309;
+            color: {{ $palette['accent'] }};
             letter-spacing: 1pt;
             margin: 1pt 0;
         }
         .seal-text-bot {
             font-size: 4.5pt;
             font-weight: bold;
-            color: #78350f;
+            color: {{ $palette['header'] }};
             font-family: "DejaVu Sans", Arial, sans-serif;
             letter-spacing: 0.3pt;
         }
@@ -358,15 +366,37 @@
             vertical-align: bottom;
             text-align: center;
         }
+        .digital-signature {
+            display: inline-block;
+            border: 1pt solid {{ $palette['accent'] }};
+            background: {{ $palette['soft'] }};
+            padding: 3pt 7pt;
+            margin-bottom: 4pt;
+            text-align: left;
+            min-width: 190pt;
+        }
+        .digital-signature-title {
+            color: {{ $palette['header'] }};
+            font-size: 7pt;
+            font-weight: bold;
+            font-family: "DejaVu Sans", Arial, sans-serif;
+            letter-spacing: 0.35pt;
+        }
+        .digital-signature-meta {
+            color: {{ $palette['muted'] }};
+            font-size: 5.5pt;
+            margin-top: 1pt;
+            font-family: "DejaVu Sans", Arial, sans-serif;
+        }
         .issue-date {
             font-size: 9pt;
-            color: #475569;
+            color: {{ $palette['muted'] }};
             margin-bottom: 14pt;
         }
         .sign-name {
             font-size: 11pt;
             font-weight: bold;
-            color: #0f2b48;
+            color: {{ $palette['title'] }};
             border-bottom: 1pt solid #94a3b8;
             display: inline-block;
             padding-bottom: 2pt;
@@ -374,7 +404,7 @@
         }
         .sign-title {
             font-size: 7.5pt;
-            color: #64748b;
+            color: {{ $palette['muted'] }};
             margin-top: 2pt;
             text-transform: uppercase;
             font-family: "DejaVu Sans", Arial, sans-serif;
@@ -473,8 +503,8 @@
                                     </td>
                                     <td class="crypto-info-col">
                                         <div><span class="crypto-badge">VERIFIKASI RESMI</span></div>
-                                        <div style="font-weight: bold; color: #0f2b48; font-size: 8pt; margin-top: 2pt;">Keaslian Dokumen Terjamin</div>
-                                        <div style="color: #475569; font-size: 6.5pt; line-height: 1.3; margin-top: 2pt;">
+                                        <div style="font-weight: bold; color: {{ $palette['title'] }}; font-size: 8pt; margin-top: 2pt;">Keaslian Dokumen Terjamin</div>
+                                        <div style="color: {{ $palette['muted'] }}; font-size: 6.5pt; line-height: 1.3; margin-top: 2pt;">
                                             Ijazah ini dilindungi pengaman digital universitas dan terdaftar dalam pangkalan data resmi.
                                         </div>
                                         <div style="color: #047857; font-size: 6.5pt; font-weight: bold; margin-top: 2pt;">
@@ -496,6 +526,15 @@
 
                     <td class="signatory-cell">
                         <div class="issue-date">Jakarta, {{ \Carbon\Carbon::parse($certificate->issued_date)->translatedFormat('d F Y') }}</div>
+                        <div class="digital-signature">
+                            <div class="digital-signature-title">✓ DITANDATANGANI SECARA DIGITAL</div>
+                            <div class="digital-signature-meta">
+                                {{ $cryptoKey->algorithm ?? 'RSA-2048' }} / {{ $cryptoKey->signature_scheme ?? 'RSA-PSS' }} / {{ $cryptoKey->hash_algorithm ?? 'SHA-256' }}
+                            </div>
+                            <div class="digital-signature-meta">
+                                Kunci: {{ $cryptoKey->key_id ?? 'CERTIVA-ACTIVE-KEY' }}
+                            </div>
+                        </div>
                         <div class="sign-name">{{ $certificate->signatory_name ?? 'Prof. Dr. Ir. H. Budi Rahardjo, M.Sc.' }}</div>
                         <div class="sign-title">{{ $certificate->signatory_title ?? 'Rektor Universitas Bina Sarana Informatika' }}</div>
                         <div class="sign-legal">Tanda tangan elektronik bersertifikasi sah sesuai UU ITE No. 11/2008</div>

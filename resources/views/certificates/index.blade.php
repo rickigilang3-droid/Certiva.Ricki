@@ -72,7 +72,7 @@
 
             <!-- Certificates Table -->
             <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm overflow-hidden">
-                <div class="overflow-x-auto">
+                <div class="hidden md:block overflow-x-auto">
                     <table class="w-full text-left text-xs">
                         <thead class="bg-slate-100/90 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 uppercase tracking-wider font-bold border-b border-slate-200 dark:border-slate-700">
                             <tr>
@@ -192,6 +192,68 @@
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Mobile-friendly certificate cards -->
+                <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-700/60">
+                    @forelse($certificates as $cert)
+                        <article class="p-4 space-y-4">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0">
+                                    <a href="{{ route('certificates.show', $cert) }}" class="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400 break-all">
+                                        {{ $cert->certificate_number }}
+                                    </a>
+                                    <h3 class="mt-1 text-base font-bold text-slate-900 dark:text-white truncate">
+                                        {{ $cert->recipient_name }}
+                                    </h3>
+                                    <p class="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                                        NIM: {{ $cert->recipient_identifier ?? '-' }}
+                                    </p>
+                                </div>
+                                @if($cert->status === 'active')
+                                    <span class="inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                        Aktif
+                                    </span>
+                                @else
+                                    <span class="inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                        Dicabut
+                                    </span>
+                                @endif
+                            </div>
+
+                            <div class="rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-3">
+                                <p class="text-xs font-semibold text-slate-900 dark:text-white">{{ $cert->title }}</p>
+                                <div class="flex flex-wrap items-center gap-2 mt-2 text-[11px] text-slate-500 dark:text-slate-400">
+                                    <span>{{ $cert->department ?? $cert->institution_name }}</span>
+                                    <span class="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                                    <span>{{ \Carbon\Carbon::parse($cert->issued_date)->translatedFormat('d M Y') }}</span>
+                                    <span class="px-1.5 py-0.5 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 font-mono font-bold uppercase">{{ $cert->template ?? 'formal' }}</span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <a href="{{ route('certificates.show', $cert) }}" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7z"/></svg>
+                                    Detail
+                                </a>
+                                <a href="{{ route('certificates.pdf', $cert) }}" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold transition">
+                                    <svg class="w-4 h-4 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    Unduh PDF
+                                </a>
+                                <a href="{{ route('verify.show', $cert->certificate_number) }}" target="_blank" class="col-span-2 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-xs font-semibold transition">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    Buka verifikasi publik
+                                    <span aria-hidden="true">↗</span>
+                                </a>
+                            </div>
+                        </article>
+                    @empty
+                        <div class="px-6 py-12 text-center text-sm text-slate-600 dark:text-slate-400">
+                            Tidak ada data sertifikat yang sesuai kriteria pencarian.
+                        </div>
+                    @endforelse
                 </div>
 
                 @if($certificates->hasPages())

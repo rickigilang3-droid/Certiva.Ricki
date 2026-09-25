@@ -80,9 +80,9 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'certificate_number' => 'CERT-2026-CAMPUS-002',
-                'recipient_name' => 'Siti Nurhaliza, S.T.',
+                'recipient_name' => 'Nadia Putri, S.T.',
                 'recipient_identifier' => '20220801089',
-                'recipient_email' => 'siti.nurhaliza@student.certiva.ac.id',
+                'recipient_email' => 'nadia.putri@student.certiva.ac.id',
                 'title' => 'Sarjana Teknik (S.T.) - Rekayasa Sistem Siber',
                 'category' => 'Ijazah & Sertifikat Kelulusan',
                 'department' => 'Fakultas Teknik & Ilmu Komputer',

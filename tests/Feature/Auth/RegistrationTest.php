@@ -29,4 +29,21 @@ class RegistrationTest extends TestCase
         $this->assertAuthenticated();
         $response->assertRedirect(route('student.certificates'));
     }
+
+    public function test_registration_requires_matching_password_confirmation(): void
+    {
+        $response = $this->from('/register')->post('/register', [
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'identifier' => '17220099',
+            'password' => 'password',
+            'password_confirmation' => 'different-password',
+        ]);
+
+        $response->assertRedirect('/register');
+        $response->assertSessionHasErrors([
+            'password' => 'Konfirmasi kata sandi tidak cocok.',
+        ]);
+        $this->assertGuest();
+    }
 }

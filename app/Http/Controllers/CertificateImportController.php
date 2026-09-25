@@ -76,9 +76,9 @@ class CertificateImportController extends Controller
 
             // Sample row 2
             fputcsv($handle, [
-                'Siti Nurhaliza',
+                'Amelia Dwi Oktaviani',
                 '12220200',
-                'siti.nurhaliza@student.bsi.ac.id',
+                'amelia.oktaviani@student.bsi.ac.id',
                 'Sarjana Manajemen - Sistem Informasi Bisnis',
                 'Ijazah Kelulusan',
                 'Fakultas Ekonomi dan Komunikasi',

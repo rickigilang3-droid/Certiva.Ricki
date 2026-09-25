@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'crypto' => [
+        'private_key_base64' => env('CRYPTO_PRIVATE_KEY_BASE64'),
+    ],
+
 ];

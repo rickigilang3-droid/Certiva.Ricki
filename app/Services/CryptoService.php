@@ -160,12 +160,22 @@ class CryptoService
         $payloadString = json_encode($canonicalPayload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $hashSha256 = hash('sha256', $payloadString);
 
-        $privateKeyPath = storage_path('app/'.$key->private_key_path);
-        if (! File::exists($privateKeyPath)) {
-            throw new \RuntimeException("Private key file not found: {$key->private_key_path}");
+        $privateKeyBase64 = config('services.crypto.private_key_base64');
+        if ($privateKeyBase64) {
+            $privatePem = base64_decode($privateKeyBase64, true);
+
+            if ($privatePem === false || $privatePem === '') {
+                throw new \RuntimeException('CRYPTO_PRIVATE_KEY_BASE64 is not valid base64.');
+            }
+        } else {
+            $privateKeyPath = storage_path('app/'.$key->private_key_path);
+            if (! File::exists($privateKeyPath)) {
+                throw new \RuntimeException("Private key file not found: {$key->private_key_path}. Set CRYPTO_PRIVATE_KEY_BASE64 in production.");
+            }
+
+            $privatePem = File::get($privateKeyPath);
         }
 
-        $privatePem = File::get($privateKeyPath);
         $privateKey = RSA::loadPrivateKey($privatePem);
 
         // Configure RSA-PSS with SHA-256 and MGF1 SHA-256
