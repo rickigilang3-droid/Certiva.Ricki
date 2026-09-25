@@ -30,6 +30,19 @@ class PasswordResetTest extends TestCase
         Notification::assertSentTo($user, ResetPassword::class);
     }
 
+    public function test_reset_password_link_request_reports_unknown_email(): void
+    {
+        $response = $this->from('/forgot-password')->post('/forgot-password', [
+            'email' => 'missing@example.com',
+        ]);
+
+        $response
+            ->assertRedirect('/forgot-password')
+            ->assertSessionHasErrors([
+                'email' => "We can't find a user with that email address.",
+            ]);
+    }
+
     public function test_reset_password_screen_can_be_rendered(): void
     {
         Notification::fake();
