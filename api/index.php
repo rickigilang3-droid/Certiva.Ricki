@@ -51,6 +51,8 @@ if ($uri !== '/' && file_exists($publicFile) && is_file($publicFile)) {
 $storageDirs = [
     '/tmp/storage/app/public',
     '/tmp/storage/app/public/certificates',
+    '/tmp/storage/app/public/qrcodes',
+    '/tmp/storage/app/crypto',
     '/tmp/storage/fonts',
     '/tmp/storage/framework/cache/data',
     '/tmp/storage/framework/sessions',

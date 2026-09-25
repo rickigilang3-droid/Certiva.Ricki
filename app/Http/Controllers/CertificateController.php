@@ -93,88 +93,111 @@ class CertificateController
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'certificate_number' => ['required', 'string', 'unique:certificates,certificate_number'],
-            'recipient_name' => ['required', 'string', 'max:255'],
-            'recipient_identifier' => ['nullable', 'string', 'max:100'],
-            'recipient_email' => ['nullable', 'email', 'max:255'],
-            'title' => ['required', 'string', 'max:255'],
-            'category' => ['required', 'string', 'max:100'],
-            'template' => ['nullable', 'string', 'in:formal,modern,achievement,seminar'],
-            'department' => ['nullable', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:500'],
-            'institution_name' => ['required', 'string', 'max:255'],
-            'signatory_name' => ['required', 'string', 'max:255'],
-            'signatory_title' => ['required', 'string', 'max:255'],
-            'issued_date' => ['required', 'date'],
-            'expiry_date' => ['nullable', 'date', 'after_or_equal:issued_date'],
-        ]);
-
-        $activeKey = $this->cryptoService->getActiveKey();
-
-        // 1. Build deterministic canonical payload
-        $canonicalPayload = $this->cryptoService->buildCanonicalPayload([
-            'certificate_number' => $validated['certificate_number'],
-            'recipient_name' => $validated['recipient_name'],
-            'recipient_identifier' => $validated['recipient_identifier'] ?? '',
-            'title' => $validated['title'],
-            'institution_name' => $validated['institution_name'],
-            'department' => $validated['department'] ?? '',
-            'issued_date' => $validated['issued_date'],
-            'expiry_date' => $validated['expiry_date'] ?? null,
-            'signatory_name' => $validated['signatory_name'],
-            'signatory_title' => $validated['signatory_title'],
-        ]);
-
-        // 2. Cryptographically sign using RSA-2048 with RSA-PSS & SHA-256
-        $signData = $this->cryptoService->signWithActiveKey($canonicalPayload, $activeKey);
-
-        // 3. Save QR Code
-        $qrPath = $this->qrService->saveQrCode($validated['certificate_number']);
-
-        // 4. Create Certificate Record
-        $certificate = Certificate::create([
-            'certificate_number' => $validated['certificate_number'],
-            'recipient_name' => $validated['recipient_name'],
-            'recipient_identifier' => $validated['recipient_identifier'] ?? null,
-            'recipient_email' => $validated['recipient_email'] ?? null,
-            'title' => $validated['title'],
-            'category' => $validated['category'],
-            'template' => $validated['template'] ?? 'formal',
-            'department' => $validated['department'] ?? null,
-            'description' => $validated['description'] ?? null,
-            'institution_name' => $validated['institution_name'],
-            'signatory_name' => $validated['signatory_name'],
-            'signatory_title' => $validated['signatory_title'],
-            'issued_date' => $validated['issued_date'],
-            'expiry_date' => $validated['expiry_date'] ?? null,
-            'crypto_key_id' => $activeKey->id,
-            'canonical_payload' => $canonicalPayload,
-            'hash_sha256' => $signData['hash_sha256'],
-            'signature_rsapss' => $signData['signature_rsapss'],
-            'status' => 'active',
-            'qr_path' => $qrPath,
-        ]);
-
-        ActivityLog::create([
-            'user_id' => $request->user()?->id,
-            'action' => 'certificate.issued',
-            'subject_type' => Certificate::class,
-            'subject_id' => $certificate->id,
-            'description' => "Menerbitkan sertifikat {$certificate->certificate_number} untuk {$certificate->recipient_name}.",
-            'ip_address' => $request->ip(),
-            'metadata' => ['certificate_number' => $certificate->certificate_number],
-        ]);
-
-        // 5. Generate and store PDF
         try {
-            $pdfPath = $this->pdfService->generateAndSavePdf($certificate);
-        } catch (\Throwable $e) {
-            Log::warning("Initial PDF generation deferred: {$e->getMessage()}");
-        }
+            $validated = $request->validate([
+                'certificate_number' => ['required', 'string', 'unique:certificates,certificate_number'],
+                'recipient_name' => ['required', 'string', 'max:255'],
+                'recipient_identifier' => ['nullable', 'string', 'max:100'],
+                'recipient_email' => ['nullable', 'email', 'max:255'],
+                'title' => ['required', 'string', 'max:255'],
+                'category' => ['required', 'string', 'max:100'],
+                'template' => ['nullable', 'string', 'in:formal,modern,achievement,seminar'],
+                'department' => ['nullable', 'string', 'max:255'],
+                'description' => ['nullable', 'string', 'max:500'],
+                'institution_name' => ['required', 'string', 'max:255'],
+                'signatory_name' => ['required', 'string', 'max:255'],
+                'signatory_title' => ['required', 'string', 'max:255'],
+                'issued_date' => ['required', 'date'],
+                'expiry_date' => ['nullable', 'date', 'after_or_equal:issued_date'],
+            ]);
 
-        return redirect()->route('certificates.show', $certificate)
-            ->with('status', "Sertifikat {$certificate->certificate_number} berhasil diterbitkan dan ditandatangani secara kriptografis (RSA-PSS).");
+            $activeKey = $this->cryptoService->getActiveKey();
+
+            // 1. Build deterministic canonical payload
+            $canonicalPayload = $this->cryptoService->buildCanonicalPayload([
+                'certificate_number' => $validated['certificate_number'],
+                'recipient_name' => $validated['recipient_name'],
+                'recipient_identifier' => $validated['recipient_identifier'] ?? '',
+                'title' => $validated['title'],
+                'institution_name' => $validated['institution_name'],
+                'department' => $validated['department'] ?? '',
+                'issued_date' => $validated['issued_date'],
+                'expiry_date' => $validated['expiry_date'] ?? null,
+                'signatory_name' => $validated['signatory_name'],
+                'signatory_title' => $validated['signatory_title'],
+            ]);
+
+            // 2. Cryptographically sign using RSA-2048 with RSA-PSS & SHA-256
+            $signData = $this->cryptoService->signWithActiveKey($canonicalPayload, $activeKey);
+
+            // 3. Save QR Code
+            $qrPath = $this->qrService->saveQrCode($validated['certificate_number']);
+
+            // 4. Create Certificate Record
+            $certificate = Certificate::create([
+                'certificate_number' => $validated['certificate_number'],
+                'recipient_name' => $validated['recipient_name'],
+                'recipient_identifier' => $validated['recipient_identifier'] ?? null,
+                'recipient_email' => $validated['recipient_email'] ?? null,
+                'title' => $validated['title'],
+                'category' => $validated['category'],
+                'template' => $validated['template'] ?? 'formal',
+                'department' => $validated['department'] ?? null,
+                'description' => $validated['description'] ?? null,
+                'institution_name' => $validated['institution_name'],
+                'signatory_name' => $validated['signatory_name'],
+                'signatory_title' => $validated['signatory_title'],
+                'issued_date' => $validated['issued_date'],
+                'expiry_date' => $validated['expiry_date'] ?? null,
+                'crypto_key_id' => $activeKey->id,
+                'canonical_payload' => $canonicalPayload,
+                'hash_sha256' => $signData['hash_sha256'],
+                'signature_rsapss' => $signData['signature_rsapss'],
+                'status' => 'active',
+                'qr_path' => $qrPath,
+            ]);
+
+            try {
+                ActivityLog::create([
+                    'user_id' => $request->user()?->id,
+                    'action' => 'certificate.issued',
+                    'subject_type' => Certificate::class,
+                    'subject_id' => $certificate->id,
+                    'description' => "Menerbitkan sertifikat {$certificate->certificate_number} untuk {$certificate->recipient_name}.",
+                    'ip_address' => $request->ip(),
+                    'metadata' => ['certificate_number' => $certificate->certificate_number],
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning("ActivityLog creation skipped: {$e->getMessage()}");
+            }
+
+            // 5. Generate and store PDF
+            try {
+                $this->pdfService->generateAndSavePdf($certificate);
+            } catch (\Throwable $e) {
+                Log::warning("Initial PDF generation deferred: {$e->getMessage()}");
+            }
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'certificate' => $certificate,
+                ]);
+            }
+
+            return redirect()->route('certificates.show', $certificate)
+                ->with('status', "Sertifikat {$certificate->certificate_number} berhasil diterbitkan dan ditandatangani secara kriptografis (RSA-PSS).");
+        } catch (\Throwable $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'error' => $e->getMessage(),
+                    'class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ], 500);
+            }
+            throw $e;
+        }
     }
 
     /**
