@@ -33,14 +33,20 @@ class CryptoKey extends Model
         'hash_algorithm',
         'signature_scheme',
         'public_key',
+        'private_key',
         'private_key_path',
         'fingerprint',
         'status',
         'last_rotated_at',
     ];
 
+    protected $hidden = [
+        'private_key',
+    ];
+
     protected $casts = [
         'last_rotated_at' => 'datetime',
+        'private_key' => 'encrypted',
     ];
 
     public function certificates(): HasMany

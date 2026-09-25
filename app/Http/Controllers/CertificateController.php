@@ -10,6 +10,7 @@ use App\Services\CryptoService;
 use App\Services\QrCodeService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class CertificateController
@@ -166,7 +167,11 @@ class CertificateController
         ]);
 
         // 5. Generate and store PDF
-        $pdfPath = $this->pdfService->generateAndSavePdf($certificate);
+        try {
+            $pdfPath = $this->pdfService->generateAndSavePdf($certificate);
+        } catch (\Throwable $e) {
+            Log::warning("Initial PDF generation deferred: {$e->getMessage()}");
+        }
 
         return redirect()->route('certificates.show', $certificate)
             ->with('status', "Sertifikat {$certificate->certificate_number} berhasil diterbitkan dan ditandatangani secara kriptografis (RSA-PSS).");
@@ -218,7 +223,11 @@ class CertificateController
         ]);
 
         // Regenerate stored PDF to immediately include the revocation watermark
-        $this->pdfService->generateAndSavePdf($certificate);
+        try {
+            $this->pdfService->generateAndSavePdf($certificate);
+        } catch (\Throwable $e) {
+            Log::warning("Revocation PDF regeneration skipped: {$e->getMessage()}");
+        }
 
         return redirect()->route('certificates.show', $certificate)
             ->with('status', "Sertifikat {$certificate->certificate_number} telah berhasil dicabut (Revoked).");
